@@ -1,0 +1,9 @@
+# Ignora a pasta de dependências do Node.js
+node_modules
+
+# Ignora as credenciais do banco de dados (ex: database.js)
+# Se você for usar variáveis de ambiente para a senha, pode remover esta linha
+backend/database.js
+
+# Ignora a pasta de build do frontend
+frontend/dist
