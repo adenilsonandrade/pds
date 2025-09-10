@@ -1,34 +1,15 @@
 const express = require('express');
-<<<<<<< HEAD
-const app = express();
-const port = 3001; // Usamos 3001 para não conflitar com o React
-=======
 const path = require('path');
 const app = express();
 const port = 3001;
-const pool = require('./database'); // Adicione esta linha
->>>>>>> 94e29c4 (Initial commit for the pds project)
+const pool = require('./database.js'); 
 
 // Middleware para parsear JSON
 app.use(express.json());
 
-<<<<<<< HEAD
-// Rota de teste
-app.get('/', (req, res) => {
-  res.send('API do PetShop funcionando!');
-});
-
-// Inicia o servidor
-app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
-});
-=======
-// Middleware para servir os arquivos estáticos do frontend
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
 // Rota de teste da API
 app.get('/api', (req, res) => {
-  res.send('API do PetShop funcionando!');
+    res.send('API do PetShop funcionando!');
 });
 
 // Nova rota para testar a conexão com o banco de dados
@@ -48,13 +29,12 @@ app.get('/api/db-test', async (req, res) => {
     }
 });
 
-// Rota curinga para servir o index.html em qualquer rota do frontend
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
-});
+// Serve arquivos estáticos da pasta `dist` do frontend. 
+// Esta linha deve ser a ÚLTIMA rota.
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
 
 // Inicia o servidor
 app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
+    console.log(`Servidor rodando em http://localhost:${port}`);
 });
->>>>>>> 94e29c4 (Initial commit for the pds project)

@@ -1,9 +1,45 @@
-# Ignora a pasta de dependências do Node.js
-node_modules
-
-# Ignora as credenciais do banco de dados (ex: database.js)
-# Se você for usar variáveis de ambiente para a senha, pode remover esta linha
-backend/database.js
+# Ignora a pasta de dependências do Node..
+node_modules/
 
 # Ignora a pasta de build do frontend
-frontend/dist
+frontend/dist/
+
+# Ignora a pasta de log
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Variáveis de ambiente
+.env
+
+# Ignora a pasta de build
+dist/
+dist-ssr/
+*.local
+
+# Editor directories and files
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Credenciais e arquivos específicos
+backend/database.js
+
+# Node.js
+# Arquivos de lock
+# Os arquivos de lock devem ser rastreados para garantir que todas as instalações de dependências sejam idênticas.
+# Se você tiver um motivo específico para ignorá-lo, você pode descomentar a linha abaixo.
+# package-lock.json
+
+# Vite
+.vite/
