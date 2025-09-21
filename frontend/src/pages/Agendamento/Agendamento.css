@@ -1,0 +1,115 @@
+@import '../../assets/styles/index.css';
+
+.agendamento-container {
+  max-width: 1200px;
+  margin: 10px auto;
+  padding: 10px 0px;
+}
+
+.subtitle {
+  font-size: 1.1em;
+  color: var(--text-dark);
+  margin-bottom: 2rem;
+}
+
+.form-section {
+  text-align: left;
+  margin-bottom: 0.1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 40px;
+}
+
+.section-title {
+  font-size: 1.4em;
+  color: var(--text-dark);
+  border-left: 4px solid var(--primary-color);
+  padding-left: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.form-group {
+  flex: 1;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  color: var(--text-dark);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.form-group textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+.btn-agendar-submit {
+  background-color: var(--action-color);
+  color: var(--text-light);
+  border: none;
+  padding: 15px 40px;
+  border-radius: 8px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  background-color: #FF8C00;
+}
+
+.btn-agendar-submit:hover {
+  background-color: #FF8C00;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .agendamento-card {
+    padding: 20px;
+  }
+  .form-row {
+    flex-direction: column;
+  }
+}
+
+.logo-businesses {
+  width: 200px;
+  height: 200px;
+}
+
+.logo-footer {
+  width: 35px;
+  height: 35px;
+  vertical-align: middle;
+}
+
+.footer-text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  width: 100%;
+}

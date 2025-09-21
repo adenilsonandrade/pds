@@ -1,12 +1,61 @@
-PDS
+# PDS: App de Gestão para Banho e Tosa
 
-App Controle para agendamentos banho e tosa
+## Sobre o Projeto
+Este projeto é uma aplicação de gestão para banho e tosa, desenvolvida para resolver problemas de controle de agendamentos e finanças. Foi idealizado para o estabelecimento "Pet da Guivi" com o objetivo de otimizar a gestão diária.
 
-Onde: Pet da Guivi
+### Problema & Proposta de Solução
 
-Problema: Dificuldade no controle dos agendamentos dos banhos (pacotes semanal, quinzenal, mensal e avulsos), dificuldade em ter claro receitas e despesas, não sabendo se e em quanto o negócio é lucrativo.
+Problema:
+O negócio enfrentava dificuldades no controle de agendamentos de banhos (pacotes semanal, quinzenal, mensal e avulsos), além de ter pouca clareza sobre receitas e despesas, o que impedia a avaliação da real lucratividade do negócio.
 
-Proposta: Criar uma aplicação que possibilite o cadastro dos pets assim como dos agendamentos, tornando fácil a gestão desses clientes, ter histórico dos agendamentos assim como dos valores, ter a possibilidade controlar também as despesas.
-Funcionalidades: Cadastro pets e seus donos, assim como demais informações relevantes, Histórico dos atendimentos, controle de receitas e despesas. 
+Proposta de Solução:
+Criar uma aplicação que permita o cadastro de pets e agendamentos de forma fácil e intuitiva. A aplicação possibilita a gestão completa de clientes e seus pets, o histórico de atendimentos e, principalmente, um controle eficaz sobre receitas e despesas para determinar a saúde financeira do negócio.
 
-Motivo: O projeto busca melhorar a gestão e controle de um banho e tosa, facilitando os processos de agendamentos, assim como a melhora do acompanhamento financeiro
+## Funcionalidades
+
+Cadastro completo de pets e seus respectivos donos.
+
+Histórico de atendimentos e valores.
+
+Gerenciamento de despesas e controle financeiro.
+
+Gestão de diferentes tipos de pacotes de banho e tosa (semanal, quinzenal, etc.).
+
+## Tecnologias
+
+Frontend: React, Vite
+
+Backend: Node.js, Express
+
+Banco de Dados: MySQL
+
+Gerenciamento de Processos: PM2
+
+Controle de Versão: Git
+
+## Como Executar o Projeto
+
+Pré-requisitos
+Node.js e NPM instalados.
+
+MySQL instalado e configurado.
+
+PM2 instalado globalmente (npm install -g pm2).
+
+Instruções
+Clone este repositório:
+git clone <https://github.com/adenilsonandrade/pds.git>
+
+Vá para a pasta do backend, instale as dependências e inicie o servidor:
+cd pds/backend
+npm install
+pm2 start server.js
+
+Vá para a pasta do frontend, instale as dependências e compile o projeto:
+cd ../frontend
+npm install
+npm run build
+
+## Autor
+
+[Adenilson Andrade](https://github.com/adenilsonandrade)

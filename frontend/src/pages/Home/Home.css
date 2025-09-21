@@ -1,0 +1,93 @@
+/* Importa as variáveis de cores globais */
+@import '../../assets/styles/index.css';
+
+.home-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 15px 0px;
+}
+
+/* Seção Hero */
+.hero-section {
+  text-align: center;
+  padding: 80px 20px;
+  background-color: var(--primary-color);
+  border-radius: 15px;
+  margin: 40px 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  background-image: url('../../assets/images/banhotosa.png'); /* Substitua pelo seu caminho */
+  background-size: cover; /* Faz a imagem cobrir todo o espaço */
+  background-position: center; /* Centraliza a imagem */
+  background-repeat: no-repeat; /* Evita que a imagem se repita */
+}
+
+.hero-content {
+  background-color: rgba(255, 255, 255, 0.7); /* Fundo semi-transparente */
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.hero-content h1 {
+  font-size: 3em;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.hero-content p {
+  font-size: 1.2em;
+  color: var(--text-dark);
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+/* Seção de Serviços */
+.services-section, .trust-section {
+  text-align: center;
+  padding: 40px 0px;
+}
+
+.services-section h2, .trust-section h2 {
+  font-size: 2.2em;
+  color: var(--primary-color);
+  margin-bottom: 2rem;
+}
+
+.services-grid, .trust-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.service-card, .feature-card {
+  background-color: var(--background-white);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+  flex: 1 1 300px; /* Layout responsivo */
+}
+
+.service-card:hover, .feature-card:hover {
+  transform: translateY(-5px);
+}
+
+.service-card h3, .feature-card h3 {
+  font-size: 1.5em;
+  margin-bottom: 1rem;
+  color: var(--text-dark);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 2.5em;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-content h1 {
+    font-size: 2em;
+  }
+}

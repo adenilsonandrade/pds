@@ -1,10 +1,15 @@
 const express = require('express');
 const path = require('path');
+const cors = require('cors');
 const app = express();
 const port = 3001;
-const pool = require('./database.js'); 
+const pool = require('./db/database.js'); 
 
-// Middleware para parsear JSON
+const agendamentoRoutes = require('./routes/agendamentoRoutes.js');
+const businessRoutes = require('./routes/businessRoutes.js'); // <-- Nova importação
+
+// Middleware para parsear JSON e CORS
+app.use(cors());
 app.use(express.json());
 
 // Rota de teste da API
@@ -29,10 +34,13 @@ app.get('/api/db-test', async (req, res) => {
     }
 });
 
+// Rotas da API
+app.use('/api/agendamentos-publicos', agendamentoRoutes);
+app.use('/api/business', businessRoutes); // <-- Nova rota
+
 // Serve arquivos estáticos da pasta `dist` do frontend. 
 // Esta linha deve ser a ÚLTIMA rota.
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
 
 // Inicia o servidor
 app.listen(port, () => {

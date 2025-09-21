@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Itim&display=swap');
+
+.main-header {
+  background-color: #2B98AB;
+  padding: 1rem 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.main-header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  height: 130px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.logo-link {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-image {
+  width: 60px;
+  height: 60px;
+}
+
+.logo-text {
+  font-family: 'Itim', cursive;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.nav-and-button-group {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.main-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 2rem;
+}
+
+.main-nav a {
+  text-decoration: none;
+  font-family: 'Itim', cursive;
+  color: #fff;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.main-nav a:hover {
+  color: #E7A486;
+}
+
+.btn-login {
+  background-color: #E7A486;
+  color: #fff;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-family: 'Itim', cursive;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.btn-agendar:hover {
+  background-color: #D95D39; /* Cor quando o mouse está sobre o botão */
+}
+
+.btn-agendar:active {
+  background-color: #C2452B; /* Cor quando o botão é clicado */
+}
+
+@media (max-width: 768px) {
+  .main-nav {
+    display: none;
+  }
+}
