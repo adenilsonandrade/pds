@@ -73,11 +73,11 @@
 }
 
 .btn-agendar:hover {
-  background-color: #D95D39; /* Cor quando o mouse está sobre o botão */
+  background-color: #D95D39;
 }
 
 .btn-agendar:active {
-  background-color: #C2452B; /* Cor quando o botão é clicado */
+  background-color: #C2452B;
 }
 
 @media (max-width: 768px) {

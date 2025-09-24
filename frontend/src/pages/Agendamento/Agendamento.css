@@ -84,7 +84,6 @@
   background-color: #FF8C00;
 }
 
-/* Responsividade */
 @media (max-width: 768px) {
   .agendamento-card {
     padding: 20px;

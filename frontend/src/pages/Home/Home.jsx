@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import Card from '../../components/Card/Card.jsx';
 import './Home.css';
 
-// Dados dos benefícios da plataforma
 const platformBenefits = [
   {
     title: "Gestão Completa de Clientes",
@@ -19,7 +18,6 @@ const platformBenefits = [
   }
 ];
 
-// Dados dos diferenciais do AugendaPet
 const trustData = [
   {
     title: "Profissionalismo Garantido",
@@ -38,22 +36,18 @@ const trustData = [
 function Home() {
   return (
     <div className="home-container">
-      
-      {/* Seção Hero - Agora sobre a plataforma AugendaPet */}
       <section className="hero-section">
         <div className="hero-content">
           <h1>Transforme a Gestão do seu Negócio Pet</h1>
           <p>
             O AugendaPet é a plataforma white-label para agendamentos e controle financeiro do seu estabelecimento.
           </p>
-          {/* O link agora é para a página de login, onde os donos de negócio se autenticam */}
           <Link to="/login" className="btn-primary-action">
             Fazer Login
           </Link>
         </div>
       </section>
 
-      {/* Seção de Funcionalidades para o Dono do Negócio */}
       <section className="services-section">
         <h2>Funcionalidades da Plataforma</h2>
         <div className="services-grid">
@@ -66,7 +60,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Seção de Confiança - Sobre o AugendaPet */}
       <section className="trust-section">
         <h2>Por que escolher AugendaPet?</h2>
         <div className="trust-grid">
@@ -78,7 +71,6 @@ function Home() {
           ))}
         </div>
       </section>
-      
     </div>
   );
 }

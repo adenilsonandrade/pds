@@ -16,7 +16,9 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/agendar" element={<Agendamento />} />
+  <Route path="/agendar" element={<Agendamento />} />
+  <Route path="/agendar/:handle" element={<Agendamento />} />
+  <Route path="/:handle" element={<Agendamento />} />
       <Route path="/" element={<MainLayout />}>
         <Route index element={<Home />} />
         <Route path="servicos" element={<ServicosPage />} />

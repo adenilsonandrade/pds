@@ -1,23 +1,38 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
 const app = express();
-const port = 3001;
-const pool = require('./db/database.js'); 
-
+app.set('trust proxy', true);
+const port = process.env.PORT || 3001;
+const pool = require('./db/database.js');
 const agendamentoRoutes = require('./routes/agendamentoRoutes.js');
-const businessRoutes = require('./routes/businessRoutes.js'); // <-- Nova importação
-
-// Middleware para parsear JSON e CORS
+const businessRoutes = require('./routes/businessRoutes.js');
 app.use(cors());
 app.use(express.json());
-
-// Rota de teste da API
+app.use('/api', (req, res, next) => {
+    try {
+        const logEntry = {
+            time: new Date().toISOString(),
+            method: req.method,
+            path: req.originalUrl,
+            ip: req.ip,
+            headers: {
+                host: req.headers.host,
+                'x-forwarded-for': req.headers['x-forwarded-for'] || null,
+                'content-type': req.headers['content-type'] || null
+            },
+            body: req.body || null
+        };
+        fs.appendFileSync(path.join(__dirname, '../server.log'), JSON.stringify(logEntry) + '\n');
+    } catch (err) {
+        console.error('Request log error:', err.message);
+    }
+    next();
+});
 app.get('/api', (req, res) => {
     res.send('API do PetShop funcionando!');
 });
-
-// Nova rota para testar a conexão com o banco de dados
 app.get('/api/db-test', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT 1 + 1 AS solution');
@@ -33,16 +48,12 @@ app.get('/api/db-test', async (req, res) => {
         });
     }
 });
-
-// Rotas da API
 app.use('/api/agendamentos-publicos', agendamentoRoutes);
-app.use('/api/business', businessRoutes); // <-- Nova rota
-
-// Serve arquivos estáticos da pasta `dist` do frontend. 
-// Esta linha deve ser a ÚLTIMA rota.
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-// Inicia o servidor
+app.use('/api/business', businessRoutes);
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 app.listen(port, () => {
-    console.log(`Servidor rodando em http://localhost:${port}`);
+    console.log(`Servidor rodando em http://localhost:${port} (env=${process.env.NODE_ENV || 'development'})`);
+});
+app.get(/^\/(?!api).*/, (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
 });

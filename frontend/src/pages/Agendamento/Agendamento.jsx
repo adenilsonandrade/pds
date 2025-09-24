@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import api from '../../services/api';
 import './Agendamento.css';
 import Card from '../../components/Card/Card.jsx';
 import { getTodayDate } from '../../utils/dateHelpers.js';
-import FormGroup from '../../components/FormGroup/FormGroup.jsx'; // Importa o componente FormGroup
+import FormGroup from '../../components/FormGroup/FormGroup.jsx';
 import logoImage from '../../assets/images/logo_dark.png';
 import PageLoader from '../../utils/PageLoader.jsx';
 
@@ -28,13 +29,14 @@ function Agendamento() {
     mapsUrl: null
   });
   const todayDate = getTodayDate();
+  const { handle = '' } = useParams();
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
         const [servicesResponse, businessResponse] = await Promise.all([
-          api.getServicos(),
-          api.getBusinessInfo()
+          api.getServicos(handle),
+          api.getBusinessInfo(handle)
         ]);
 
         setServicosDisponiveis(servicesResponse || []);
@@ -67,7 +69,7 @@ function Agendamento() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const success = await api.postAgendamento(agendamentoData);
+  const success = await api.postAgendamento(agendamentoData, handle);
 
     if (success) {
       alert('Agendamento confirmado com sucesso!');
@@ -103,7 +105,6 @@ function Agendamento() {
               Preencha o formulário para garantir o melhor cuidado.
             </p>
             <form onSubmit={handleSubmit}>
-              {/* Seção de Informações do Pet */}
               <div className="form-section">
                 <h3 className="section-title">Informações do Pet</h3>
                 <div className="form-row">
@@ -123,7 +124,6 @@ function Agendamento() {
                 </div>
               </div>
 
-              {/* Seção de Informações do Tutor */}
               <div className="form-section">
                 <h3 className="section-title">Informações do Tutor</h3>
                 <div className="form-row">
@@ -145,7 +145,6 @@ function Agendamento() {
                 </div>
               </div>
 
-              {/* Seção de Agendamento */}
               <div className="form-section">
                 <h3 className="section-title">Detalhes do Agendamento</h3>
                 <FormGroup
@@ -190,7 +189,6 @@ function Agendamento() {
             </form>
           </Card>
 
-          {/* Cards de Localização e Footer */}
           <Card>
             <h2>Localização</h2>
             <p>{businessInfo.location}</p>

@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const agendamentoController = require('../controllers/agendamentoController.js');
 
-// Rota para criar um novo agendamento público
+// POST /api/agendamentos-publicos/:handle
+router.post('/:handle', agendamentoController.createAgendamento);
+// fallback: POST /api/agendamentos-publicos
 router.post('/', agendamentoController.createAgendamento);
 
 module.exports = router;

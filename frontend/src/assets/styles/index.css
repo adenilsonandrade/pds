@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Itim&display=swap');
 
-/* Variáveis de cores para reutilização */
 :root {
   --primary-color: #1A1A1A;
   --secondary-color: #6c757d;
@@ -10,7 +9,6 @@
   --border-color: #ccc;
 }
 
-/* Estilos globais para o corpo da página */
 body {
   font-family: 'Itim', cursive;
   margin: 0;
@@ -19,14 +17,12 @@ body {
   color: var(--text-color-dark);
 }
 
-/* Estilos globais para títulos */
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Itim', cursive;
   color: var(--primary-color);
   margin-top: 0;
 }
 
-/* Estilos de base para elementos de formulário */
 input,
 select,
 textarea {
@@ -38,7 +34,6 @@ textarea {
   width: 100%;
 }
 
-/* Estilos de base para botões */
 button {
   font-family: 'Itim', cursive;
   background-color: var(--primary-color);
@@ -84,12 +79,11 @@ body {
     box-shadow: 0 2px 4px #0000003d;
 }
 
-/* Foco: destaca o campo quando o usuário clica */
 .form-section .form-row input:focus,
 .form-section .form-row select:focus,
 .form-section .form-row textarea:focus,
 .form-section > .form-group input:focus,
 .form-section > .form-group select:focus,
 .form-section > .form-group textarea:focus {
-    box-shadow: 0 4px 4px #e403733d;
+  box-shadow: 0 4px 4px #e403733d;
 }

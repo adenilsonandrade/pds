@@ -1,9 +1,14 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || '';
+
+function buildUrl(path) {
+  return `${API_URL}${path}`;
+}
 
 const api = {
-  async postAgendamento(agendamentoData) {
+  async postAgendamento(agendamentoData, handle = '') {
     try {
-      const response = await fetch(`${API_URL}/api/agendamentos-publicos`, {
+      const suffix = handle ? `/${encodeURIComponent(handle)}` : '';
+      const response = await fetch(buildUrl(`/api/agendamentos-publicos${suffix}`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -16,10 +21,10 @@ const api = {
       return false;
     }
   },
-  
-  async getServicos() {
+  async getServicos(handle = '') {
     try {
-      const response = await fetch(`${API_URL}/api/business/services`);
+      const suffix = handle ? `/${encodeURIComponent(handle)}` : '';
+      const response = await fetch(buildUrl(`/api/business${suffix}/services`));
       if (response.ok) {
         const data = await response.json();
         return data;
@@ -30,10 +35,10 @@ const api = {
       return [];
     }
   },
-
-  async getBusinessInfo() {
+  async getBusinessInfo(handle = '') {
     try {
-      const response = await fetch(`${API_URL}/api/business/info`);
+      const suffix = handle ? `/${encodeURIComponent(handle)}` : '';
+      const response = await fetch(buildUrl(`/api/business${suffix}/info`));
       if (response.ok) {
         const data = await response.json();
         return data;

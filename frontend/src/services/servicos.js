@@ -1,11 +1,11 @@
-// Dados dos serviços, agora vindo do backend
+import api from './api';
+
 const getServicosDisponiveis = async () => {
-    // Esta URL precisará ser configurada no backend
     try {
-        const response = await api.get('/api/servicos-disponiveis');
-        return response.data;
+        const data = await api.getServicos();
+        return data || [];
     } catch (error) {
-        console.error("Erro ao buscar os serviços:", error);
+        console.error('Erro ao buscar os serviços:', error);
         return [];
     }
 };
