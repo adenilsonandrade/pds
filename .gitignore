@@ -32,9 +32,6 @@ dist-ssr/
 *.sln
 *.sw?
 
-# Credenciais e arquivos específicos
-backend/db/database.js
-
 # Node.js
 # Arquivos de lock
 # Os arquivos de lock devem ser rastreados para garantir que todas as instalações de dependências sejam idênticas.
