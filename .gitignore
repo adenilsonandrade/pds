@@ -33,7 +33,7 @@ dist-ssr/
 *.sw?
 
 # Credenciais e arquivos específicos
-backend/database.js
+backend/db/database.js
 
 # Node.js
 # Arquivos de lock
