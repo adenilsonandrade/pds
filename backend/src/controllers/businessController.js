@@ -42,7 +42,6 @@ exports.getBusinessInfo = async (req, res) => {
             res.status(404).json({ message: 'Business not found' });
         }
     } catch (error) {
-        console.error('Error fetching business info:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };
@@ -62,7 +61,6 @@ exports.getServices = async (req, res) => {
         const [rows] = await pool.query('SELECT id, name, description, value FROM services WHERE business_id = ?', [businessId]);
         res.status(200).json(rows);
     } catch (error) {
-        console.error('Error fetching services:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
 };

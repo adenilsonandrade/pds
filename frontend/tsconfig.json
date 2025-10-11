@@ -1,0 +1,80 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    // File Layout
+    // "rootDir": "./src",
+    // "outDir": "./dist",
+
+    // Environment Settings
+    // See also https://aka.ms/tsconfig/module
+  "module": "ESNext",
+  "target": "esnext",
+  "types": [],
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "lucide-react@*": ["node_modules/lucide-react"],
+      "class-variance-authority@*": ["node_modules/class-variance-authority"],
+      "sonner@*": ["node_modules/sonner"],
+      "next-themes@*": ["node_modules/next-themes"],
+      "react-day-picker@*": ["node_modules/react-day-picker"],
+      "embla-carousel-react@*": ["node_modules/embla-carousel-react"],
+      "recharts@*": ["node_modules/recharts"],
+      "cmdk@*": ["node_modules/cmdk"],
+      "react-resizable-panels@*": ["node_modules/react-resizable-panels"],
+      "input-otp@*": ["node_modules/input-otp"],
+      "vaul@*": ["node_modules/vaul"],
+  "@radix-ui/react-alert-dialog@*": ["node_modules/@radix-ui/react-alert-dialog"],
+  "@radix-ui/react-tooltip@*": ["node_modules/@radix-ui/react-tooltip"],
+  "@radix-ui/react-toggle@*": ["node_modules/@radix-ui/react-toggle"],
+  "@radix-ui/react-toggle-group@*": ["node_modules/@radix-ui/react-toggle-group"],
+  "@radix-ui/react-tabs@*": ["node_modules/@radix-ui/react-tabs"],
+  "@radix-ui/react-switch@*": ["node_modules/@radix-ui/react-switch"],
+  "@radix-ui/react-slot@*": ["node_modules/@radix-ui/react-slot"],
+  "@radix-ui/react-slider@*": ["node_modules/@radix-ui/react-slider"],
+  "@radix-ui/react-separator@*": ["node_modules/@radix-ui/react-separator"],
+  "@radix-ui/react-select@*": ["node_modules/@radix-ui/react-select"],
+  "@radix-ui/react-scroll-area@*": ["node_modules/@radix-ui/react-scroll-area"],
+  "@radix-ui/react-radio-group@*": ["node_modules/@radix-ui/react-radio-group"],
+  "@radix-ui/react-popover@*": ["node_modules/@radix-ui/react-popover"],
+  "@radix-ui/react-dialog@*": ["node_modules/@radix-ui/react-dialog"],
+  "@radix-ui/react-context-menu@*": ["node_modules/@radix-ui/react-context-menu"],
+  "@radix-ui/react-dropdown-menu@*": ["node_modules/@radix-ui/react-dropdown-menu"],
+  "@radix-ui/react-menu@*": ["node_modules/@radix-ui/react-menu"],
+  "@radix-ui/react-accordion@*": ["node_modules/@radix-ui/react-accordion"],
+    },
+    
+  "verbatimModuleSyntax": false,
+    // For nodejs:
+    // "lib": ["esnext"],
+    // "types": ["node"],
+    // and npm install -D @types/node
+
+    // Other Outputs
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // Stricter Typechecking Options
+  "noUncheckedIndexedAccess": true,
+  // exactOptionalPropertyTypes causes incompatibilities with some UI libs/Primitives
+  "exactOptionalPropertyTypes": false,
+
+    // Style Options
+    // "noImplicitReturns": true,
+    // "noImplicitOverride": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    // "noFallthroughCasesInSwitch": true,
+    // "noPropertyAccessFromIndexSignature": true,
+
+    // Recommended Options
+    "strict": true,
+  "jsx": "react-jsx",
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  }
+}

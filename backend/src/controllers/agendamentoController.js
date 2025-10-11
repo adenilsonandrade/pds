@@ -4,10 +4,7 @@ const businessController = require('./businessController.js');
 const DEFAULT_BUSINESS_ID = process.env.DEFAULT_BUSINESS_ID || null;
 
 exports.createAgendamento = async (req, res) => {
-    console.log('createAgendamento request from', req.ip, 'headers:', {
-        host: req.headers.host,
-        forwarded: req.headers['x-forwarded-for']
-    });
+    
     const handle = req.params.handle || null;
     let businessId = null;
     try {
@@ -20,7 +17,6 @@ exports.createAgendamento = async (req, res) => {
             return res.status(400).json({ message: 'Business handle is required' });
         }
     } catch (err) {
-        console.error('Error resolving business by handle:', err);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 
@@ -93,7 +89,6 @@ exports.createAgendamento = async (req, res) => {
         await pool.query(query, values);
         res.status(201).json({ message: 'Agendamento criado com sucesso!' });
     } catch (error) {
-        console.error('Erro ao criar agendamento:', error);
         res.status(500).json({ message: 'Erro interno do servidor.' });
     }
 };

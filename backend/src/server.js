@@ -8,6 +8,9 @@ const port = process.env.PORT || 3001;
 const pool = require('./db/database.js');
 const agendamentoRoutes = require('./routes/agendamentoRoutes.js');
 const businessRoutes = require('./routes/businessRoutes.js');
+const authRoutes = require('./routes/authRoutes.js');
+const adminUsersRoutes = require('./routes/adminUsersRoutes.js');
+const adminBusinessesRoutes = require('./routes/adminBusinessesRoutes.js');
 app.use(cors());
 app.use(express.json());
 app.use('/api', (req, res, next) => {
@@ -26,7 +29,6 @@ app.use('/api', (req, res, next) => {
         };
         fs.appendFileSync(path.join(__dirname, '../server.log'), JSON.stringify(logEntry) + '\n');
     } catch (err) {
-        console.error('Request log error:', err.message);
     }
     next();
 });
@@ -41,7 +43,6 @@ app.get('/api/db-test', async (req, res) => {
             solution: rows[0].solution
         });
     } catch (error) {
-        console.error(error);
         res.status(500).json({
             message: 'Erro ao conectar com o banco de dados.',
             error: error.message
@@ -50,10 +51,11 @@ app.get('/api/db-test', async (req, res) => {
 });
 app.use('/api/agendamentos-publicos', agendamentoRoutes);
 app.use('/api/business', businessRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/admin/users', adminUsersRoutes);
+app.use('/api/admin/businesses', adminBusinessesRoutes);
 app.use(express.static(path.join(__dirname, '../../frontend/dist')));
-app.listen(port, () => {
-    console.log(`Servidor rodando em http://localhost:${port} (env=${process.env.NODE_ENV || 'development'})`);
-});
+app.listen(port, () => {});
 app.get(/^\/(?!api).*/, (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
 });
