@@ -1,9 +1,10 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { Clock, Phone, MessageSquare, MoreHorizontal, Scissors } from "lucide-react";
+import { Scissors } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { CardDescription, CardTitle } from "../ui/card";
+import { Phone, MessageSquare, MoreHorizontal } from "lucide-react";
 
 const appointments = [
   {
@@ -91,110 +92,102 @@ const getStatusText = (status: string) => {
 
 export function BathSchedule() {
   return (
-    <Card className="col-span-2">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Scissors className="h-5 w-5 text-primary" />
-              Agenda de Banhos - Hoje
-            </CardTitle>
-            <CardDescription>
-              {appointments.length} agendamentos • Receita estimada: R$ 410,00
-            </CardDescription>
-          </div>
-          <Button variant="outline" size="sm">
-            Ver Agenda Completa
-          </Button>
+    <div className="col-span-2">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="flex items-center gap-2 text-lg font-semibold">
+            <Scissors className="h-5 w-5 text-primary" />
+            Agenda de Banhos - Hoje
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {appointments.length} agendamentos • Receita: R$ 410,00
+          </p>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {appointments.map((appointment) => (
-            <div 
-              key={appointment.id}
-              className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
-            >
-              <div className="flex items-center gap-4">
-                  <div className="text-center min-w-[60px]">
-                    <div className="text-sm font-medium">{appointment.time}</div>
-                    <div className="text-xs text-muted-foreground">{appointment.duration}</div>
-                  </div>
-                
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    {appointment.client.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="font-medium">{appointment.client}</div>
-                    <Badge variant="outline" className="text-xs">
-                      {appointment.pet}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-muted-foreground">{appointment.service}</div>
-                </div>
+        <Button variant="outline" size="sm">
+          Ver Agenda
+        </Button>
+      </div>
+
+      <div className="space-y-3">
+        {appointments.map((appointment) => (
+          <div
+            key={appointment.id}
+            className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
+          >
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="text-center min-w-[60px]">
+                <div className="text-sm font-medium">{appointment.time}</div>
+                <div className="text-xs text-muted-foreground">{appointment.duration}</div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <div className="font-medium text-sm">{appointment.price}</div>
-                  <Badge 
-                    variant="secondary"
-                    className={`text-xs ${getStatusColor(appointment.status)}`}
-                  >
-                    {getStatusText(appointment.status)}
+              <Avatar className="hidden sm:flex h-10 w-10">
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  {appointment.client.split(" ").map((n) => n[0]).join("")}
+                </AvatarFallback>
+              </Avatar>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 mb-1">
+                  <div className="font-medium truncate">{appointment.client}</div>
+                  <Badge variant="outline" className="text-xs sm:ml-2">
+                    {appointment.pet}
                   </Badge>
                 </div>
-
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Phone className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <MessageSquare className="h-4 w-4" />
-                  </Button>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Editar agendamento</DropdownMenuItem>
-                      <DropdownMenuItem>Marcar como concluído</DropdownMenuItem>
-                      <DropdownMenuItem>Remarcar</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
-                        Cancelar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                <div className="text-sm text-muted-foreground truncate">{appointment.service}</div>
               </div>
             </div>
-          ))}
-        </div>
 
-        <div className="mt-6 p-4 bg-secondary/20 rounded-lg">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-lg font-semibold text-emerald-600">3</div>
-              <div className="text-xs text-muted-foreground">Confirmados</div>
-            </div>
-            <div>
-              <div className="text-lg font-semibold text-blue-600">1</div>
-              <div className="text-xs text-muted-foreground">Em Andamento</div>
-            </div>
-            <div>
-              <div className="text-lg font-semibold text-yellow-600">1</div>
-              <div className="text-xs text-muted-foreground">Pendentes</div>
+            <div className="ml-4 flex items-center gap-3">
+              <div className="text-sm font-medium text-right">
+                <div className="font-medium text-sm">{appointment.price}</div>
+                <Badge variant="secondary" className={`text-xs ${getStatusColor(appointment.status)}`}>
+                  {getStatusText(appointment.status)}
+                </Badge>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Phone className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MessageSquare className="h-4 w-4" />
+                </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem>Editar agendamento</DropdownMenuItem>
+                    <DropdownMenuItem>Marcar como concluído</DropdownMenuItem>
+                    <DropdownMenuItem>Remarcar</DropdownMenuItem>
+                    <DropdownMenuItem className="text-destructive">Cancelar</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
+        ))}
+      </div>
+
+      <div className="mt-6 p-4 bg-secondary/20 rounded-lg">
+        <div className="grid grid-cols-3 sm:grid-cols-3 gap-3 text-center">
+          <div>
+            <div className="text-lg font-semibold text-emerald-600">3</div>
+            <div className="text-xs text-muted-foreground">Confirmados</div>
+          </div>
+          <div>
+            <div className="text-lg font-semibold text-blue-600">1</div>
+            <div className="text-xs text-muted-foreground">Em Andamento</div>
+          </div>
+          <div>
+            <div className="text-lg font-semibold text-yellow-600">1</div>
+            <div className="text-xs text-muted-foreground">Pendentes</div>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
