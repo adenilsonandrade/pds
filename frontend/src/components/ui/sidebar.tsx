@@ -178,30 +178,41 @@ function Sidebar({
     );
   }
 
-  if (isMobile) {
-    return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetContent
-          data-sidebar="sidebar"
-          data-slot="sidebar"
-          data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
-          side={side}
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
-          </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
+if (isMobile) {
+  const childArray = React.Children.toArray(children) as React.ReactElement[];
+  const footerChild = childArray.find(
+    (c) => React.isValidElement(c) && (c.props as any)["data-sidebar"] === "footer",
+  );
+  const otherChildren = childArray.filter(
+    (c) => !(React.isValidElement(c) && (c.props as any)["data-sidebar"] === "footer"),
+  );
+
+  return (
+    <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+      <SheetContent
+        data-sidebar="sidebar"
+        data-slot="sidebar"
+        data-mobile="true"
+        className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden flex flex-col h-screen"
+        style={
+          {
+            "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+          } as React.CSSProperties
+        }
+        side={side}
+      >
+        <SheetHeader className="sr-only">
+          <SheetTitle>Sidebar</SheetTitle>
+          <SheetDescription>Displays the mobile sidebar.</SheetDescription>
+        </SheetHeader>
+        <div className="flex-1 min-h-0 overflow-auto">{otherChildren}</div>
+        {footerChild ? (
+          <div className="border-t bg-sidebar p-2">{footerChild}</div>
+        ) : null}
+      </SheetContent>
+    </Sheet>
+  );
+}
 
   return (
     <div
