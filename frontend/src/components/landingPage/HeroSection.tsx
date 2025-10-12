@@ -25,7 +25,7 @@ export function HeroSection() {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.8,
+        duration: 0.4,
         ease: "easeOut"
       }
     }
@@ -38,7 +38,7 @@ export function HeroSection() {
       y: 0,
       scale: 1,
       transition: {
-        duration: 0.6,
+        duration: 0.3,
         ease: "easeOut"
       }
     }
@@ -66,7 +66,7 @@ export function HeroSection() {
                 className="text-primary block"
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5, duration: 0.8 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
               >
                 Petshop
               </motion.span>
@@ -75,7 +75,7 @@ export function HeroSection() {
                 className="text-accent block"
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.7, duration: 0.8 }}
+                transition={{ delay: 0.5, duration: 0.4 }}
               >
                 inteligente
               </motion.span>
@@ -168,7 +168,7 @@ export function HeroSection() {
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
             >
               <ImageWithFallback
                 src="https://images.unsplash.com/photo-1725419876939-f8f9987cf0d2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwZXQlMjBncm9vbWluZyUyMHNhbG9uJTIwcHJvZmVzc2lvbmFsfGVufDF8fHx8MTc1OTAxNjM5MHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
@@ -180,7 +180,7 @@ export function HeroSection() {
               className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-lg"
               initial={{ opacity: 0, y: 50, x: -50 }}
               animate={{ opacity: 1, y: 0, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
+              transition={{ duration: 0.4, delay: 0.6 }}
               whileHover={{ scale: 1.1, y: -5 }}
             >
               <div className="text-center">
@@ -188,7 +188,7 @@ export function HeroSection() {
                   className="text-2xl text-primary mb-1"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ duration: 0.5, delay: 1 }}
+                  transition={{ duration: 0.2, delay: 1 }}
                 >
                   +300%
                 </motion.div>
@@ -199,7 +199,7 @@ export function HeroSection() {
               className="absolute -top-6 -right-6 bg-accent p-4 rounded-xl shadow-lg text-white"
               initial={{ opacity: 0, y: -50, x: 50 }}
               animate={{ opacity: 1, y: 0, x: 0 }}
-              transition={{ duration: 0.8, delay: 1 }}
+              transition={{ duration: 0.4, delay: 1 }}
               whileHover={{ scale: 1.1, y: -5 }}
             >
               <div className="text-center">
@@ -207,7 +207,7 @@ export function HeroSection() {
                   className="text-xl mb-1"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  transition={{ duration: 0.5, delay: 1.2 }}
+                  transition={{ duration: 0.2, delay: 1.2 }}
                 >
                   98%
                 </motion.div>

@@ -49,7 +49,7 @@ export function HowItWorksSection() {
       y: 0,
       scale: 1,
       transition: {
-        duration: 0.8,
+        duration: 0.3,
         ease: "easeOut"
       }
     }
@@ -61,8 +61,8 @@ export function HowItWorksSection() {
       scaleX: 1,
       opacity: 1,
       transition: {
-        duration: 0.8,
-        delay: 0.5,
+        duration: 0.3,
+        delay: 0.3,
         ease: "easeOut"
       }
     }
@@ -75,13 +75,13 @@ export function HowItWorksSection() {
           className="text-center mb-16"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.3 }}
           viewport={{ once: true, margin: "-100px" }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.3 }}
             viewport={{ once: true }}
           >
             <Badge variant="outline" className="mb-4">Como Funciona</Badge>
@@ -90,7 +90,7 @@ export function HowItWorksSection() {
             className="text-4xl mb-4"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
             viewport={{ once: true }}
           >
             Simples para seus clientes,
@@ -98,7 +98,7 @@ export function HowItWorksSection() {
               className="text-primary block"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
               viewport={{ once: true }}
             >
               poderoso para você
@@ -108,7 +108,7 @@ export function HowItWorksSection() {
             className="text-xl text-muted-foreground max-w-2xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+            transition={{ duration: 0.3, delay: 0.4 }}
             viewport={{ once: true }}
           >
             Em apenas 3 passos, seus clientes conseguem agendar e você tem 
@@ -117,36 +117,7 @@ export function HowItWorksSection() {
         </motion.div>
 
         <div className="relative">
-          {/* Connection lines */}
-          <motion.div 
-            className="hidden lg:block absolute top-24 left-1/2 w-full max-w-4xl -translate-x-1/2"
-            variants={lineVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <div className="flex justify-between items-center">
-              <motion.div 
-                className="w-1/3 h-0.5 bg-gradient-to-r from-primary to-accent origin-left"
-                variants={lineVariants}
-              ></motion.div>
-              <motion.div 
-                className="w-1/3 h-0.5 bg-gradient-to-r from-accent to-primary origin-left"
-                variants={{
-                  ...lineVariants,
-                  visible: {
-                    ...lineVariants.visible,
-                    transition: {
-                      ...lineVariants.visible.transition,
-                      delay: 0.8
-                    }
-                  }
-                }}
-              ></motion.div>
-            </div>
-          </motion.div>
-
-          <motion.div 
+          <motion.div
             className="grid lg:grid-cols-3 gap-8 lg:gap-12"
             variants={containerVariants}
             initial="hidden"
@@ -160,7 +131,7 @@ export function HowItWorksSection() {
                 variants={stepVariants}
                 whileHover={{ 
                   y: -10,
-                  transition: { duration: 0.2 }
+                  transition: { duration: 0.1 }
                 }}
               >
                 <div className="text-center">
@@ -169,7 +140,7 @@ export function HowItWorksSection() {
                     whileHover={{ 
                       scale: 1.1,
                       rotate: [0, -10, 10, 0],
-                      transition: { duration: 0.5 }
+                      transition: { duration: 0.3 }
                     }}
                     whileTap={{ scale: 0.9 }}
                   >
@@ -180,7 +151,7 @@ export function HowItWorksSection() {
                     initial={{ opacity: 0, scale: 0 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     transition={{ 
-                      duration: 0.6, 
+                      duration: 0.3, 
                       delay: index * 0.2 + 0.5,
                       type: "spring",
                       stiffness: 100
@@ -194,7 +165,7 @@ export function HowItWorksSection() {
                     className="text-xl mb-4"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 + 0.3 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 + 0.3 }}
                     viewport={{ once: true }}
                   >
                     {step.title}
@@ -203,7 +174,7 @@ export function HowItWorksSection() {
                     className="text-muted-foreground leading-relaxed"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 + 0.5 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 + 0.5 }}
                     viewport={{ once: true }}
                   >
                     {step.description}
@@ -215,7 +186,7 @@ export function HowItWorksSection() {
                     className="lg:hidden flex justify-center my-8"
                     initial={{ opacity: 0, scale: 0 }}
                     whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: index * 0.2 + 0.8 }}
+                    transition={{ duration: 0.2, delay: index * 0.2 + 0.8 }}
                     viewport={{ once: true }}
                   >
                     <motion.div
@@ -240,7 +211,7 @@ export function HowItWorksSection() {
           className="text-center mt-16"
           initial={{ opacity: 0, y: 50, scale: 0.9 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
           viewport={{ once: true }}
         >
           <motion.div 
@@ -248,14 +219,14 @@ export function HowItWorksSection() {
             whileHover={{ 
               scale: 1.02,
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-              transition: { duration: 0.2 }
+              transition: { duration: 0.1 }
             }}
           >
             <motion.h3 
               className="text-2xl mb-4"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
               viewport={{ once: true }}
             >
               Resultado:
@@ -270,7 +241,7 @@ export function HowItWorksSection() {
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 30 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
                 }}
               >
                 <motion.div 
@@ -278,8 +249,8 @@ export function HowItWorksSection() {
                   initial={{ scale: 0 }}
                   whileInView={{ scale: 1 }}
                   transition={{ 
-                    duration: 0.6, 
-                    delay: 0.7,
+                    duration: 0.3, 
+                    delay: 0.4,
                     type: "spring",
                     stiffness: 200
                   }}
@@ -292,7 +263,7 @@ export function HowItWorksSection() {
               <motion.div
                 variants={{
                   hidden: { opacity: 0, y: 30 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay: 0.2 } }
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.3, delay: 0.1 } }
                 }}
               >
                 <motion.div 
@@ -300,8 +271,8 @@ export function HowItWorksSection() {
                   initial={{ scale: 0 }}
                   whileInView={{ scale: 1 }}
                   transition={{ 
-                    duration: 0.6, 
-                    delay: 0.9,
+                    duration: 0.3, 
+                    delay: 0.6,
                     type: "spring",
                     stiffness: 200
                   }}

@@ -26,11 +26,11 @@ export function CTASection() {
               </div>
               <div className="flex items-center gap-3 text-white/90">
                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                <span>Treinamento completo para sua equipe</span>
+                <span>Plataforma de treinamento</span>
               </div>
               <div className="flex items-center gap-3 text-white/90">
                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                <span>Suporte dedicado durante toda a implementação</span>
+                <span>Suporte dedicado</span>
               </div>
             </div>
 

@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Badge } from "../ui/badge";
 import { Check, Zap, Crown, Rocket } from "lucide-react";
 import { motion } from "motion/react";
+import { useState } from "react";
 
 const plans = [
   {
@@ -13,9 +14,9 @@ const plans = [
     description: "Perfeito para petshops iniciantes",
     badge: null,
     features: [
-      "Até 200 agendamentos/mês",
+      "Até 300 agendamentos/mês",
       "Agenda online básica", 
-      "Lembretes via WhatsApp",
+      "Modulo financeiro",
       "Suporte por email",
       "1 usuário"
     ],
@@ -32,8 +33,7 @@ const plans = [
     features: [
       "Agendamentos ilimitados",
       "Múltiplos serviços",
-      "Lembretes SMS + WhatsApp",
-      "Pagamentos online",
+      "Lembretes via WhatsApp",
       "Relatórios avançados",
       "Até 5 usuários",
       "Suporte prioritário"
@@ -44,8 +44,7 @@ const plans = [
   {
     name: "Enterprise",
     icon: Rocket,
-    price: "R$ 299",
-    period: "/mês", 
+    price: "Consulte",
     description: "Para redes e grandes petshops",
     badge: "Mais Completo",
     features: [
@@ -54,7 +53,6 @@ const plans = [
       "API personalizada",
       "Integração com sistemas",
       "Usuários ilimitados",
-      "Gerente de conta dedicado",
       "Customizações especiais"
     ],
     cta: "Conversar com Vendas",
@@ -63,6 +61,35 @@ const plans = [
 ];
 
 export function PricingSection() {
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
+
+  function parseBRL(priceStr: string) {
+    if (!priceStr || priceStr.toLowerCase().includes('consulte')) return NaN;
+    const digits = priceStr.replace(/[^0-9,\.]/g, '').replace(',', '.');
+    return Number(digits) || NaN;
+  }
+    function BillingToggle() {
+      return (
+        <div className="inline-flex rounded-md bg-transparent">
+          <button
+            onClick={() => setBilling('monthly')}
+            className={`px-4 py-2 text-sm ${billing === 'monthly' ? 'bg-primary text-white rounded-md' : 'text-muted-foreground'}`}
+          >
+            Mensal
+          </button>
+          <button
+            onClick={() => setBilling('annual')}
+            className={`px-4 py-2 text-sm ${billing === 'annual' ? 'bg-primary text-white rounded-md' : 'text-muted-foreground'}`}
+          >
+            Trimestral (-5%)
+          </button>
+        </div>
+      );
+    }
+
+  function formatBRL(value: number) {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 });
+  }
   const containerVariants = ({
     hidden: { opacity: 0 },
     visible: {
@@ -85,7 +112,7 @@ export function PricingSection() {
       y: 0,
       scale: 1,
       transition: {
-        duration: 0.8,
+        duration: 0.5,
         ease: "easeOut"
       }
     }
@@ -97,7 +124,7 @@ export function PricingSection() {
       opacity: 1,
       x: 0,
       transition: {
-        duration: 0.4,
+        duration: 0.2,
         ease: "easeOut"
       }
     }
@@ -110,14 +137,14 @@ export function PricingSection() {
           className="text-center mb-16"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.5 }}
           viewport={{ once: true, margin: "-100px" }}
         >
           <motion.h2 
             className="text-4xl mb-4"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
           >
             Planos que cabem no seu
@@ -125,7 +152,7 @@ export function PricingSection() {
               className="text-primary block"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
               viewport={{ once: true }}
             >
               orçamento
@@ -135,7 +162,7 @@ export function PricingSection() {
             className="text-xl text-muted-foreground mb-8"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
             viewport={{ once: true }}
           >
             Comece grátis por 30 dias. Sem compromisso, sem taxa de setup.
@@ -145,24 +172,12 @@ export function PricingSection() {
             className="inline-flex items-center bg-white p-1 rounded-lg shadow-sm"
             initial={{ opacity: 0, scale: 0.8 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
+            transition={{ duration: 0.4, delay: 0.5 }}
             viewport={{ once: true }}
             whileHover={{ scale: 1.05 }}
           >
-            <motion.button 
-              className="px-4 py-2 bg-primary text-white rounded-md text-sm"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Mensal
-            </motion.button>
-            <motion.button 
-              className="px-4 py-2 text-muted-foreground text-sm"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Anual (-20%)
-            </motion.button>
+            {/* Billing toggle */}
+            <BillingToggle />
           </motion.div>
         </motion.div>
 
@@ -180,7 +195,7 @@ export function PricingSection() {
               whileHover={{ 
                 y: -15,
                 scale: plan.popular ? 1.02 : 1.05,
-                transition: { duration: 0.2 }
+                transition: { duration: 0.1 }
               }}
               className="relative"
             >
@@ -193,7 +208,7 @@ export function PricingSection() {
                     initial={{ opacity: 0, y: -20, scale: 0 }}
                     whileInView={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ 
-                      duration: 0.5, 
+                      duration: 0.3, 
                       delay: index * 0.1 + 0.5,
                       type: "spring",
                       stiffness: 200 
@@ -209,7 +224,7 @@ export function PricingSection() {
                     initial={{ opacity: 0, scale: 0, rotate: 180 }}
                     whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
                     transition={{ 
-                      duration: 0.6, 
+                      duration: 0.4, 
                       delay: index * 0.1 + 0.3,
                       type: "spring",
                       stiffness: 200 
@@ -218,7 +233,7 @@ export function PricingSection() {
                     whileHover={{ 
                       scale: 1.1, 
                       rotate: [0, -10, 10, 0],
-                      transition: { duration: 0.5 }
+                      transition: { duration: 0.3 }
                     }}
                   >
                     <plan.icon className={`h-12 w-12 mx-auto mb-4 ${plan.popular ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -226,7 +241,7 @@ export function PricingSection() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 + 0.4 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 + 0.4 }}
                     viewport={{ once: true }}
                   >
                     <CardTitle className="text-2xl">{plan.name}</CardTitle>
@@ -234,7 +249,7 @@ export function PricingSection() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 + 0.5 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 + 0.5 }}
                     viewport={{ once: true }}
                   >
                     <CardDescription className="text-base">{plan.description}</CardDescription>
@@ -244,15 +259,42 @@ export function PricingSection() {
                     initial={{ opacity: 0, scale: 0.5 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     transition={{ 
-                      duration: 0.6, 
+                      duration: 0.4, 
                       delay: index * 0.1 + 0.6,
                       type: "spring",
                       stiffness: 200 
                     }}
                     viewport={{ once: true }}
                   >
-                    <span className="text-4xl">{plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+                    {/* Price rendering depending on billing */}
+                    {(() => {
+                      const base = parseBRL(plan.price as string);
+                      if (isNaN(base)) {
+                        return <span className="text-2xl">{plan.price}</span>;
+                      }
+
+                      if (billing === 'monthly') {
+                        return (
+                          <>
+                            <span className="text-4xl">{formatBRL(base)}</span>
+                            <span className="text-muted-foreground">/mês</span>
+                          </>
+                        );
+                      }
+
+                      const monthlyDiscounted = +(base * 0.95).toFixed(0);
+                      const totalAnnual = monthlyDiscounted * 3;
+
+                      return (
+                        <div className="flex flex-col items-center">
+                          <div>
+                            <span className="text-4xl">{formatBRL(monthlyDiscounted)}</span>
+                            <span className="text-muted-foreground">/mês</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">Total: <span className="font-medium">{formatBRL(totalAnnual)}</span></div>
+                        </div>
+                      );
+                    })()}
                   </motion.div>
                 </CardHeader>
 
@@ -284,7 +326,7 @@ export function PricingSection() {
                           initial={{ scale: 0, rotate: 180 }}
                           whileInView={{ scale: 1, rotate: 0 }}
                           transition={{ 
-                            duration: 0.3, 
+                            duration: 0.1, 
                             delay: index * 0.1 + 0.8 + featureIndex * 0.05,
                             type: "spring",
                             stiffness: 200 
@@ -301,7 +343,7 @@ export function PricingSection() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 + 1.2 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 + 1.2 }}
                     viewport={{ once: true }}
                   >
                     <motion.div
@@ -326,7 +368,7 @@ export function PricingSection() {
           className="text-center mt-16"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
           viewport={{ once: true }}
         >
           <motion.div 
@@ -334,14 +376,14 @@ export function PricingSection() {
             whileHover={{ 
               scale: 1.02,
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-              transition: { duration: 0.2 }
+              transition: { duration: 0.1 }
             }}
           >
             <motion.h3 
               className="text-2xl mb-6"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
               viewport={{ once: true }}
             >
               Todos os planos incluem:
@@ -366,7 +408,7 @@ export function PricingSection() {
                 "30 dias grátis para testar",
                 "Cancele quando quiser", 
                 "Migração gratuita dos dados",
-                "Treinamento completo da equipe",
+                "Plataforma de treinamento",
                 "Atualizações automáticas",
                 "Garantia de uptime 99.9%"
               ].map((feature, index) => (
@@ -380,8 +422,8 @@ export function PricingSection() {
                     initial={{ scale: 0, rotate: 180 }}
                     whileInView={{ scale: 1, rotate: 0 }}
                     transition={{ 
-                      duration: 0.3, 
-                      delay: 0.7 + index * 0.1,
+                      duration: 0.1, 
+                      delay: 0.5 + index * 0.1,
                       type: "spring",
                       stiffness: 200 
                     }}

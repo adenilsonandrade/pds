@@ -77,7 +77,7 @@ export function TestimonialsSection() {
       y: 0,
       rotateY: 0,
       transition: {
-        duration: 0.7,
+        duration: 0.4,
         ease: "easeOut"
       }
     }
@@ -89,7 +89,7 @@ export function TestimonialsSection() {
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.6,
+        duration: 0.4,
         ease: "easeOut"
       }
     }
@@ -102,14 +102,14 @@ export function TestimonialsSection() {
           className="text-center mb-16"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.5 }}
           viewport={{ once: true, margin: "-100px" }}
         >
           <motion.h2 
             className="text-4xl mb-4"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             viewport={{ once: true }}
           >
             Petshops que já crescem
@@ -117,7 +117,7 @@ export function TestimonialsSection() {
               className="text-primary block"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
             >
               com nossa plataforma
@@ -127,7 +127,7 @@ export function TestimonialsSection() {
             className="text-xl text-muted-foreground"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             viewport={{ once: true }}
           >
             Mais de 2.000 petshops em todo o Brasil já transformaram seus negócios
@@ -135,7 +135,7 @@ export function TestimonialsSection() {
         </motion.div>
 
         <motion.div 
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-4"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -149,7 +149,7 @@ export function TestimonialsSection() {
                 y: -10,
                 scale: 1.02,
                 rotateY: 5,
-                transition: { duration: 0.2 }
+                transition: { duration: 0.1 }
               }}
               style={{ perspective: 1000 }}
             >
@@ -159,7 +159,7 @@ export function TestimonialsSection() {
                     className="flex items-center gap-1 mb-4"
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 + 0.3 }}
                     viewport={{ once: true }}
                   >
                     {[...Array(testimonial.rating)].map((_, i) => (
@@ -168,7 +168,7 @@ export function TestimonialsSection() {
                         initial={{ opacity: 0, scale: 0, rotate: 180 }}
                         whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
                         transition={{ 
-                          duration: 0.4, 
+                          duration: 0.2, 
                           delay: index * 0.1 + 0.5 + i * 0.1,
                           type: "spring",
                           stiffness: 200 
@@ -181,10 +181,10 @@ export function TestimonialsSection() {
                   </motion.div>
                   
                   <motion.blockquote 
-                    className="text-muted-foreground mb-6 leading-relaxed"
+                    className="text-muted-foreground mb-4 leading-relaxed"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 + 0.4 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 + 0.4 }}
                     viewport={{ once: true }}
                   >
                     "{testimonial.content}"
@@ -194,7 +194,7 @@ export function TestimonialsSection() {
                     className="flex items-center gap-3"
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 + 0.6 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 + 0.6 }}
                     viewport={{ once: true }}
                   >
                     <motion.div
@@ -212,7 +212,7 @@ export function TestimonialsSection() {
                         className="font-medium"
                         initial={{ opacity: 0, y: 10 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: index * 0.1 + 0.7 }}
+                        transition={{ duration: 0.2, delay: index * 0.1 + 0.7 }}
                         viewport={{ once: true }}
                       >
                         {testimonial.name}
@@ -221,7 +221,7 @@ export function TestimonialsSection() {
                         className="text-sm text-muted-foreground"
                         initial={{ opacity: 0, y: 10 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: index * 0.1 + 0.8 }}
+                        transition={{ duration: 0.2, delay: index * 0.1 + 0.8 }}
                         viewport={{ once: true }}
                       >
                         {testimonial.role}
@@ -230,7 +230,7 @@ export function TestimonialsSection() {
                         className="text-xs text-muted-foreground"
                         initial={{ opacity: 0, y: 10 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: index * 0.1 + 0.9 }}
+                        transition={{ duration: 0.2, delay: index * 0.1 + 0.9 }}
                         viewport={{ once: true }}
                       >
                         {testimonial.location}
@@ -247,7 +247,7 @@ export function TestimonialsSection() {
           className="text-center mt-16"
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           viewport={{ once: true }}
         >
           <motion.div 
@@ -274,7 +274,7 @@ export function TestimonialsSection() {
                   initial={{ scale: 0, rotate: 180 }}
                   whileInView={{ scale: 1, rotate: 0 }}
                   transition={{ 
-                    duration: 0.6, 
+                    duration: 0.4, 
                     delay: index * 0.1 + 0.5,
                     type: "spring",
                     stiffness: 200 
@@ -287,7 +287,7 @@ export function TestimonialsSection() {
                   className="text-sm text-muted-foreground"
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 + 0.7 }}
+                  transition={{ duration: 0.2, delay: index * 0.1 + 0.7 }}
                   viewport={{ once: true }}
                 >
                   {stat.label}

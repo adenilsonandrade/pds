@@ -55,7 +55,7 @@ export function FeaturesSection() {
       opacity: 1,
       transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.2
+        delayChildren: 0.1
       }
     }
   } as unknown) as any;
@@ -71,7 +71,7 @@ export function FeaturesSection() {
       y: 0,
       scale: 1,
       transition: {
-        duration: 0.6,
+        duration: 0.3,
         ease: "easeOut"
       }
     }
@@ -83,7 +83,7 @@ export function FeaturesSection() {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.8,
+        duration: 0.4,
         ease: "easeOut"
       }
     }
@@ -103,7 +103,7 @@ export function FeaturesSection() {
             className="text-4xl mb-4"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.4 }}
             viewport={{ once: true }}
           >
             Tudo que seu petshop precisa
@@ -111,7 +111,7 @@ export function FeaturesSection() {
               className="text-primary block"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
               viewport={{ once: true }}
             >
               em uma plataforma
@@ -121,7 +121,7 @@ export function FeaturesSection() {
             className="text-xl text-muted-foreground max-w-2xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
             viewport={{ once: true }}
           >
             Funcionalidades pensadas especificamente para petshops que querem crescer 
@@ -154,7 +154,7 @@ export function FeaturesSection() {
                       whileHover={{ 
                         scale: 1.1, 
                         rotate: [0, -10, 10, 0],
-                        transition: { duration: 0.5 }
+                        transition: { duration: 0.3 }
                       }}
                     >
                       <feature.icon className={`h-12 w-12 ${feature.color}`} />
@@ -162,7 +162,7 @@ export function FeaturesSection() {
                     <motion.div
                       initial={{ opacity: 0, scale: 0 }}
                       whileInView={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.4, delay: index * 0.1 + 0.5 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 + 0.3 }}
                       viewport={{ once: true }}
                     >
                       <Badge variant="secondary" className="text-xs">
@@ -186,7 +186,7 @@ export function FeaturesSection() {
           className="text-center mt-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
           viewport={{ once: true }}
         >
           <motion.div 
@@ -198,10 +198,10 @@ export function FeaturesSection() {
               className="text-sm"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
               viewport={{ once: true }}
             >
-              ✨ E muito mais funcionalidades sendo adicionadas toda semana
+              ✨ E muito mais funcionalidades sendo adicionadas
             </motion.span>
           </motion.div>
         </motion.div>
