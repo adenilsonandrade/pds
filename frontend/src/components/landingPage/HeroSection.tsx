@@ -5,8 +5,8 @@ import { motion, useScroll, useTransform } from "motion/react";
 
 export function HeroSection() {
   const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 500], [0, -100]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0.5]);
+  const y = useTransform(scrollY, [0, 700], [0, -40]);
+  const opacity = useTransform(scrollY, [0, 600], [1, 0.7]);
 
   const containerVariants = ({
     hidden: { opacity: 0 },
