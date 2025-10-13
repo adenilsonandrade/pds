@@ -45,7 +45,7 @@ export function HeroSection() {
   } as unknown) as any;
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-orange-50 px-4 overflow-hidden">
+  <section className="relative min-h-screen flex items-center justify-center hero-section bg-gradient-to-br from-blue-50 to-orange-50 px-4 overflow-hidden">
       <motion.div 
         className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center"
         style={{ y, opacity }}
