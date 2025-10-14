@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Checkbox } from "../ui/checkbox";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { Heart, Eye, EyeOff, ArrowLeft, Shield, Zap } from "lucide-react";
+import { setToken } from '../../services/auth';
+import { useSelectedBusiness } from '../../contexts/SelectedBusinessContext';
 
 interface LoginPageProps {
   onBackToLanding: () => void;
@@ -17,10 +19,10 @@ export function LoginPage({ onBackToLanding, onLoginSuccess }: LoginPageProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const { setSelectedBusinessId } = useSelectedBusiness();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Chamada real ao backend
     if (!email || !password) return;
     setLoading(true);
     setError(null);
@@ -35,14 +37,11 @@ export function LoginPage({ onBackToLanding, onLoginSuccess }: LoginPageProps) {
         return data;
       })
       .then((data) => {
-        // Armazenar token e notificar sucesso
         if (data.token) {
           try {
-            if (rememberMe) {
-              localStorage.setItem('accessToken', data.token);
-            } else {
-              sessionStorage.setItem('accessToken', data.token);
-            }
+            setToken(data.token, rememberMe);
+            try { localStorage.removeItem('selectedBusinessId'); } catch (e) {}
+            try { setSelectedBusinessId(null); } catch (e) {}
           } catch (err) {
             // ignore storage errors
           }
@@ -61,7 +60,6 @@ export function LoginPage({ onBackToLanding, onLoginSuccess }: LoginPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
-        {/* Lado esquerdo - Imagem e informações */}
         <div className="hidden lg:block relative">
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1629819126368-d85e9138d2c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBvZmZpY2UlMjB3b3Jrc3BhY2UlMjBwZXRzfGVufDF8fHx8MTc1OTAyMzQ5N3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
@@ -102,7 +100,6 @@ export function LoginPage({ onBackToLanding, onLoginSuccess }: LoginPageProps) {
           </div>
         </div>
 
-        {/* Lado direito - Formulário de login */}
         <div className="flex flex-col justify-center">
           <Button
             variant="ghost"

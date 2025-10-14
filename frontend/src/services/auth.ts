@@ -14,6 +14,23 @@ export function getToken(): string | null {
   return null;
 }
 
+export function setToken(token: string, remember: boolean) {
+  try {
+    if (remember) {
+      localStorage.setItem('accessToken', token);
+      try { sessionStorage.removeItem('accessToken'); } catch (e) {}
+    } else {
+      sessionStorage.setItem('accessToken', token);
+      try { localStorage.removeItem('accessToken'); } catch (e) {}
+    }
+  } catch (e) {}
+}
+
+export function clearAuthStorage() {
+  try { localStorage.removeItem('accessToken'); } catch (e) {}
+  try { sessionStorage.removeItem('accessToken'); } catch (e) {}
+}
+
 export async function getCurrentUser() {
   const token = getToken();
   const res = await fetch('/api/auth/me', {

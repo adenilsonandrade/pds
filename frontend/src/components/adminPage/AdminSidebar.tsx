@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { clearAuthStorage } from '../../services/auth';
 import { Calendar, BarChart3, Users, DollarSign, Settings, Bell, Heart, Home, FileText, LogOut, PawPrint, Store } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, useSidebar } from "../ui/sidebar";
 import { Button } from "../ui/button";
@@ -46,7 +47,6 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
 					}
 				})();
 
-			// businesses and selectedBusinessId are provided by SelectedBusinessProvider
 			return () => { mounted = false; };
 		}, []);
 
@@ -136,7 +136,6 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
 									</SidebarMenuItem>
 								);
 							})}
-							{/* Show Petshops management only for support users */}
 							{currentUser && currentUser.role === 'support' && (
 								<SidebarMenuItem>
 									<SidebarMenuButton asChild>
@@ -161,7 +160,6 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
 						<div className="flex-1 min-w-0">
 							<div className="text-sm font-medium truncate">{currentUser ? ((currentUser.first_name || '') + (currentUser.last_name ? ' ' + currentUser.last_name : '')).trim() || 'Usuário' : 'Usuário'}</div>
 							<div className="text-xs text-muted-foreground">{currentUser && currentUser.business_name ? currentUser.business_name : '—'}</div>
-							{/* Se usuário for suporte, mostrar select de petshop abaixo do nome */}
 							{currentUser && currentUser.role === 'support' && (
 								<div className="mt-2">
 									<select
@@ -169,7 +167,6 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
 										onChange={(e) => {
 										const v = e.target.value || null;
 										setSelectedBusinessId(v);
-										// update displayed business name locally
 										const found = businesses.find(b => b.id === v);
 										setCurrentUser((cu) => cu ? { ...cu, business_name: found ? found.brand_name : cu.business_name } : cu);
 									}}
@@ -189,7 +186,12 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
 						variant="ghost"
 						size="sm"
 						className="w-full justify-start text-muted-foreground hover:text-foreground"
-						onClick={onLogout}
+						onClick={() => {
+							clearAuthStorage();
+							try { localStorage.removeItem('selectedBusinessId'); } catch (e) {}
+							try { setSelectedBusinessId(null); } catch (e) {}
+							onLogout();
+						}}
 					>
 						<LogOut className="h-4 w-4 mr-2" />
 						Sair
