@@ -4,6 +4,7 @@ export async function getUsers() {
   const token = getToken();
   const res = await fetch('/api/admin/users', {
     method: 'GET',
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -20,6 +21,7 @@ export async function deleteUser(id: number | string) {
   const token = getToken();
   const res = await fetch(`/api/admin/users/${id}`, {
     method: 'DELETE',
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -36,6 +38,7 @@ export async function createUser(payload: { email: string; first_name?: string; 
   const token = getToken();
   const res = await fetch('/api/admin/users', {
     method: 'POST',
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -53,6 +56,7 @@ export async function updateUser(id: number | string, payload: { email?: string;
   const token = getToken();
   const res = await fetch(`/api/admin/users/${id}`, {
     method: 'PUT',
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

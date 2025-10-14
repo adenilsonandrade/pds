@@ -18,6 +18,7 @@ export async function getCurrentUser() {
   const token = getToken();
   const res = await fetch('/api/auth/me', {
     method: 'GET',
+    cache: 'no-store',
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

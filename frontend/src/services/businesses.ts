@@ -4,7 +4,7 @@ const base = '/api/admin/businesses';
 
 export async function getBusinesses() {
   const token = getToken();
-  const res = await fetch(base, { headers: { Authorization: token ? `Bearer ${token}` : '' } });
+  const res = await fetch(base, { cache: 'no-store', headers: { Authorization: token ? `Bearer ${token}` : '' } });
   if (!res.ok) throw new Error('Falha ao listar petshops');
   return res.json();
 }
