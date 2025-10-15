@@ -7,7 +7,7 @@ import { QuickReports } from "./QuickReports";
 
 export default function AdminHome() {
   return (
-    <main className="flex-1 space-y-3 p-2">
+    <main className="flex-1 space-y-3 p-3">
       <FinancialCards />
 
       <div className="grid gap-3 lg:grid-cols-3">

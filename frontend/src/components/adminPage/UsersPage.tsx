@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
@@ -8,6 +9,7 @@ import { getUsers, deleteUser } from '../../services/users';
 import { createUser, updateUser } from '../../services/users';
 import { getBusinesses } from '../../services/businesses';
 import { getCurrentUser } from '../../services/auth';
+import { Edit3, Trash2, Info } from 'lucide-react';
 
 type Role = 'support' | 'admin' | 'user';
 
@@ -34,8 +36,11 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [formData, setFormData] = useState<{ id?: number | string; email: string; first_name?: string; last_name?: string; phone?: string | null; password?: string | null; role?: Role | string; business_id?: string | null }>({ email: '', first_name: '', last_name: '', phone: null, password: null, role: 'user', business_id: null });
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [viewOnly, setViewOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [businesses, setBusinesses] = useState<Array<{ id: string; brand_name: string }>>([]);
+
+  const location = useLocation();
 
   useEffect(() => {
     async function load() {
@@ -60,15 +65,24 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
       }
     }
     load();
-  }, []);
+  }, [location.pathname]);
 
   function openCreate() {
     setFormMode('create');
+    setViewOnly(false);
     setFormData({ email: '', first_name: '', last_name: '', phone: null, password: null, role: 'user', business_id: currentRole === 'admin' ? currentBusinessId || null : null });
     setIsFormOpen(true);
   }
 
   function openEdit(user: UserRow) {
+    setViewOnly(false);
+    setFormMode('edit');
+    setFormData({ id: user.id, email: user.email, first_name: user.first_name || '', last_name: user.last_name || '', phone: user.phone || null, password: null, role: user.role, business_id: user.business_id || null });
+    setIsFormOpen(true);
+  }
+
+  function openDetails(user: UserRow) {
+    setViewOnly(true);
     setFormMode('edit');
     setFormData({ id: user.id, email: user.email, first_name: user.first_name || '', last_name: user.last_name || '', phone: user.phone || null, password: null, role: user.role, business_id: user.business_id || null });
     setIsFormOpen(true);
@@ -117,8 +131,19 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
     }
   }
 
+  const visibleUsers = users
+    .filter((u) => !(currentRole === 'admin' && u.role === 'support'))
+    .filter((u) => {
+      const q = searchTerm.toLowerCase();
+      return (
+        u.email.toLowerCase().includes(q) ||
+        ((u.first_name || '') + ' ' + (u.last_name || '')).toLowerCase().includes(q) ||
+        (u.phone || '').toLowerCase().includes(q)
+      );
+    });
+
   return (
-    <main className="flex-1 space-y-6 p-6">
+    <main className="flex-1 space-y-4 p-3">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Gestão de Usuários</h1>
@@ -153,28 +178,27 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <Label>Email</Label>
-                    <input required value={formData.email} onChange={(e) => setFormData((s) => ({ ...s, email: e.target.value }))} placeholder="email@exemplo.com" className="p-2 border rounded w-full" />
+                    <input required value={formData.email} onChange={(e) => setFormData((s) => ({ ...s, email: e.target.value }))} placeholder="email@exemplo.com" className="p-2 border rounded w-full" disabled={viewOnly} />
                   </div>
                   <div>
                     <Label>First name</Label>
-                    <input value={formData.first_name} onChange={(e) => setFormData((s) => ({ ...s, first_name: e.target.value }))} placeholder="Nome" className="p-2 border rounded w-full" />
+                    <input value={formData.first_name} onChange={(e) => setFormData((s) => ({ ...s, first_name: e.target.value }))} placeholder="Nome" className="p-2 border rounded w-full" disabled={viewOnly} />
                   </div>
                   <div>
                     <Label>Last name</Label>
-                    <input value={formData.last_name} onChange={(e) => setFormData((s) => ({ ...s, last_name: e.target.value }))} placeholder="Sobrenome" className="p-2 border rounded w-full" />
+                    <input value={formData.last_name} onChange={(e) => setFormData((s) => ({ ...s, last_name: e.target.value }))} placeholder="Sobrenome" className="p-2 border rounded w-full" disabled={viewOnly} />
                   </div>
                   <div>
                     <Label>Senha</Label>
-                    <input type="password" value={formData.password || ''} onChange={(e) => setFormData((s) => ({ ...s, password: e.target.value }))} placeholder="Senha (opcional)" className="p-2 border rounded w-full" />
+                    <input type="password" value={formData.password || ''} onChange={(e) => setFormData((s) => ({ ...s, password: e.target.value }))} placeholder="Senha (opcional)" className="p-2 border rounded w-full" disabled={viewOnly} />
                   </div>
                   <div>
                     <Label>Telefone</Label>
-                    <input value={formData.phone || ''} onChange={(e) => setFormData((s) => ({ ...s, phone: e.target.value }))} placeholder="(xx) xxxxx-xxxx" className="p-2 border rounded w-full" />
+                    <input value={formData.phone || ''} onChange={(e) => setFormData((s) => ({ ...s, phone: e.target.value }))} placeholder="(xx) xxxxx-xxxx" className="p-2 border rounded w-full" disabled={viewOnly} />
                   </div>
                   <div>
                     <Label>Role</Label>
-                    <select value={formData.role as string} onChange={(e) => setFormData((s) => ({ ...s, role: e.target.value }))} className="p-2 border rounded w-full">
-                      {/* support: can assign user/admin/support; admin: can assign user/admin; user: only user */}
+                    <select value={formData.role as string} onChange={(e) => setFormData((s) => ({ ...s, role: e.target.value }))} className="p-2 border rounded w-full" disabled={viewOnly}>
                       <option value="user">user</option>
                       {currentRole === 'admin' && <option value="admin">admin</option>}
                       {currentRole === 'support' && <option value="admin">admin</option>}
@@ -184,7 +208,7 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
                   {currentRole === 'support' ? (
                     <div>
                       <Label>Petshop</Label>
-                      <select value={formData.business_id || ''} onChange={(e) => setFormData((s) => ({ ...s, business_id: e.target.value || null }))} className="p-2 border rounded w-full">
+                      <select value={formData.business_id || ''} onChange={(e) => setFormData((s) => ({ ...s, business_id: e.target.value || null }))} className="p-2 border rounded w-full" disabled={viewOnly}>
                         <option value="">— Selecionar petshop —</option>
                         {businesses.map(b => (
                           <option key={b.id} value={b.id}>{b.brand_name}</option>
@@ -194,8 +218,12 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
                   ) : null}
                 </div>
                 <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => { setIsFormOpen(false); setFormMode('create'); }}>Cancelar</Button>
-                  <Button type="submit">{formMode === 'create' ? 'Criar' : 'Salvar'}</Button>
+                  <Button type="button" variant="outline" onClick={() => { setIsFormOpen(false); setFormMode('create'); setViewOnly(false); }}>Fechar</Button>
+                  {viewOnly ? (
+                    <Button type="button" onClick={() => { setIsFormOpen(false); setViewOnly(false); setFormMode('create'); }}>Fechar</Button>
+                  ) : (
+                    <Button type="submit">{formMode === 'create' ? 'Criar' : 'Salvar'}</Button>
+                  )}
                 </div>
               </form>
             </DialogContent>
@@ -207,63 +235,98 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
         {loading ? (
           <div>Carregando...</div>
         ) : (
-          <Card>
-            <CardContent>
-              <div className="overflow-x-auto bg-white rounded-md">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="p-2">ID</th>
-                      <th className="p-2">Nome</th>
-                      <th className="p-2">Email</th>
-                      <th className="p-2">Role</th>
-                      {currentRole !== 'admin' && <th className="p-2">Business</th>}
-                      <th className="p-2">Telefone</th>
-                      <th className="p-2">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users
-                      .filter((u) => !(currentRole === 'admin' && u.role === 'support'))
-                      .filter(u => u.email.toLowerCase().includes(searchTerm.toLowerCase()) || ((u.first_name || '') + ' ' + (u.last_name || '')).toLowerCase().includes(searchTerm.toLowerCase()) || (u.phone || '').toLowerCase().includes(searchTerm.toLowerCase()))
-                      .map((u) => (
-                      <tr key={u.id} className="border-b hover:bg-gray-50">
-                        <td className="p-2 align-top">{u.id}</td>
-                        <td className="p-2 align-top">{(u.first_name || '') + (u.last_name ? ' ' + u.last_name : '') || '—'}</td>
-                        <td className="p-2 align-top">{u.email}</td>
-                        <td className="p-2 align-top">{u.role}</td>
-                        {currentRole !== 'admin' && <td className="p-2 align-top">{u.business_name || u.business_id || '—'}</td>}
-                        <td className="p-2 align-top">{u.phone || '—'}</td>
-                        <td className="p-2 align-top">
-                          <div className="flex gap-2">
-                            {canEditRow(u) && <Button size="sm" onClick={() => openEdit(u)}>Editar</Button>}
-                            {canEditRow(u) && (
-                              String(u.id) === String(currentUserId) ? (
-                                // Show the delete button but make it visually subtle and non-interactive.
-                                // Use title as a simple tooltip explaining why it's disabled.
-                                <button
-                                  className="inline-flex items-center px-3 py-1 text-sm rounded bg-transparent text-gray-500 opacity-70 cursor-not-allowed border border-transparent"
-                                  aria-disabled="true"
-                                  title="Você não pode excluir seu próprio usuário. Peça para outro administrador ou suporte realizar a exclusão se necessário."
-                                  onClick={(e) => { e.preventDefault(); }}
-                                  disabled
-                                >
-                                  Excluir
-                                </button>
-                              ) : (
-                                <Button size="sm" variant="destructive" onClick={() => handleDelete(u.id)}>Excluir</Button>
-                              )
-                            )}
-                            {!canEditRow(u) && <span className="text-sm text-muted-foreground">Sem permissão</span>}
-                          </div>
-                        </td>
+          <>
+            <Card className="hidden md:block">
+              <CardContent>
+                <div className="overflow-x-auto bg-white rounded-md">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="p-2">Nome</th>
+                        <th className="p-2">Role</th>
+                        {currentRole !== 'admin' && <th className="p-2">Business</th>}
+                        <th className="p-2">Telefone</th>
+                        <th className="p-2">Ações</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+                    </thead>
+                    <tbody>
+                      {visibleUsers.map((u) => (
+                        <tr key={u.id} className="border-b hover:bg-gray-50">
+                          <td className="p-2 align-top">
+                            <div className="font-medium">{(u.first_name || '') + (u.last_name ? ' ' + u.last_name : '') || '—'}</div>
+                            <div className="text-sm text-muted-foreground">{u.email}</div>
+                          </td>
+                          <td className="p-2 align-top">{u.role}</td>
+                          {currentRole !== 'admin' && <td className="p-2 align-top">{u.business_name || u.business_id || '—'}</td>}
+                          <td className="p-2 align-top">{u.phone || '—'}</td>
+                          <td className="p-2 align-top">
+                            <div className="flex gap-2 items-center">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Detalhes de ${u.email}`} onClick={() => openDetails(u)}>
+                                <Info className="h-4 w-4" />
+                              </Button>
+
+                              {canEditRow(u) && (
+                                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Editar ${u.email}`} onClick={() => openEdit(u)}>
+                                  <Edit3 className="h-4 w-4" />
+                                </Button>
+                              )}
+
+                              {canEditRow(u) && (String(u.id) === String(currentUserId) ? (
+                                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-50 cursor-not-allowed" aria-disabled="true" disabled>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Excluir ${u.email}`} onClick={() => handleDelete(u.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ))}
+
+                              {!canEditRow(u) && <span className="text-sm text-muted-foreground">Sem permissão</span>}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="md:hidden space-y-3">
+              {visibleUsers.map(u => (
+                <Card key={u.id}>
+                  <CardContent className="px-6 pb-4">
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col justify-center">
+                        <div className="font-medium">{(u.first_name || '') + (u.last_name ? ' ' + u.last_name : '') || '—'}</div>
+                        <div className="text-sm text-muted-foreground">{u.email}</div>
+                        {currentRole !== 'admin' && <div className="text-sm text-muted-foreground mt-1">{u.business_name || u.business_id || '—'}</div>}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Detalhes de ${u.email}`} onClick={() => openDetails(u)}>
+                          <Info className="h-4 w-4" />
+                        </Button>
+                        {canEditRow(u) && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Editar ${u.email}`} onClick={() => openEdit(u)}>
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canEditRow(u) && (String(u.id) === String(currentUserId) ? (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-50 cursor-not-allowed" aria-disabled="true" disabled>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Excluir ${u.email}`} onClick={() => handleDelete(u.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </main>
