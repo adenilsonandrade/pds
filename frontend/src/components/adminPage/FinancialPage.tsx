@@ -132,7 +132,7 @@ export function FinancialPage() {
   const pendingRevenue = income.filter(e => e.status === "pending").reduce((sum, e) => sum + e.amount, 0);
 
   return (
-    <main className="flex-1 space-y-6 p-6">
+    <main className="flex-1 space-y-6 p-3">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -190,7 +190,6 @@ export function FinancialPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
@@ -249,7 +248,6 @@ export function FinancialPage() {
         </Card>
       </div>
 
-      {/* Charts */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -267,7 +265,7 @@ export function FinancialPage() {
                   color: "hsl(var(--accent))",
                 },
               }}
-              className="h-80"
+              className="h-60"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
@@ -306,7 +304,7 @@ export function FinancialPage() {
                   label: "Valor (%)",
                 },
               }}
-              className="h-80"
+              className="h-60"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -314,7 +312,7 @@ export function FinancialPage() {
                     data={serviceData}
                     cx="50%"
                     cy="50%"
-                    outerRadius={"60%"}
+                    outerRadius={"70%"}
                     fill="#8884d8"
                     dataKey="value"
                     label={({ name, value }) => `${name}: ${value}%`}
@@ -331,7 +329,6 @@ export function FinancialPage() {
         </Card>
       </div>
 
-      {/* Status Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6">
@@ -376,7 +373,6 @@ export function FinancialPage() {
         </Card>
       </div>
 
-      {/* Transaction List */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Movimentações Recentes</CardTitle>

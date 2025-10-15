@@ -106,8 +106,7 @@ export function SchedulePage() {
   };
 
   return (
-    <main className="flex-1 space-y-6 p-6">
-      {/* Header with stats */}
+    <main className="flex-1 space-y-6 p-3">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Agenda / Calendário</h1>
@@ -128,7 +127,6 @@ export function SchedulePage() {
         </div>
       </div>
 
-      {/* Controls */}
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex items-center gap-2">
           <Button
@@ -168,60 +166,64 @@ export function SchedulePage() {
 
         <div className="flex-1" />
 
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 w-full">
+          <div className="relative w-full md:w-auto">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar pet ou tutor..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 w-64"
+              className="pl-9 w-full md:w-64"
             />
           </div>
-          
-          <Select value={filterService} onValueChange={setFilterService}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Serviço" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="Banho e Tosa">Banho e Tosa</SelectItem>
-              <SelectItem value="Apenas Banho">Apenas Banho</SelectItem>
-              <SelectItem value="Tosa Higiênica">Tosa Higiênica</SelectItem>
-            </SelectContent>
-          </Select>
 
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="confirmed">Confirmado</SelectItem>
-              <SelectItem value="pending">Pendente</SelectItem>
-              <SelectItem value="completed">Concluído</SelectItem>
-              <SelectItem value="cancelled">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto">
+            <Select value={filterService} onValueChange={setFilterService}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="Serviço" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="Banho e Tosa">Banho e Tosa</SelectItem>
+                <SelectItem value="Apenas Banho">Apenas Banho</SelectItem>
+                <SelectItem value="Tosa Higiênica">Tosa Higiênica</SelectItem>
+              </SelectContent>
+            </Select>
 
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Agendamento
-          </Button>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-full md:w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="confirmed">Confirmado</SelectItem>
+                <SelectItem value="pending">Pendente</SelectItem>
+                <SelectItem value="completed">Concluído</SelectItem>
+                <SelectItem value="cancelled">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-full md:w-auto">
+            <Button className="w-full md:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Agendamento
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Calendar/Schedule View */}
       <div className="grid gap-6">
         {currentView === "day" && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <section>
+            <header className="mb-3">
+              <h3 className="flex items-center gap-2 text-lg font-medium">
                 <Calendar className="h-5 w-5" />
                 Agendamentos do Dia
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </h3>
+            </header>
+
+            <div>
               <div className="space-y-4">
                 {filteredAppointments.map((appointment) => (
                   <div
@@ -265,8 +267,8 @@ export function SchedulePage() {
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
         )}
 
         {currentView === "week" && (
