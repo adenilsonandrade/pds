@@ -118,8 +118,7 @@ export function ClientsPage() {
   };
 
   return (
-    <main className="flex-1 space-y-6 p-6">
-      {/* Header */}
+    <main className="flex-1 space-y-6 p-3">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Clientes</h1>
@@ -142,7 +141,6 @@ export function ClientsPage() {
         </div>
       </div>
 
-      {/* Search and Actions */}
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -169,7 +167,7 @@ export function ClientsPage() {
             <div className="space-y-6">
               <div className="space-y-4">
                 <h3 className="font-semibold">Dados do Tutor</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Nome Completo</Label>
                     <Input
@@ -247,7 +245,6 @@ export function ClientsPage() {
         </Dialog>
       </div>
 
-      {/* Client List */}
       <div className="grid gap-4">
         {filteredClients.map((client) => (
           <Card key={client.id} className="hover:shadow-lg transition-shadow">
@@ -257,20 +254,17 @@ export function ClientsPage() {
                   <div className="flex items-center gap-3">
                     <div>
                       <h3 className="font-semibold text-lg">{client.name}</h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                      <div className="flex flex-col gap-1 text-sm text-muted-foreground mt-1">
                         <div className="flex items-center gap-1">
                           <Mail className="h-4 w-4" />
-                          {client.email}
+                          <span>{client.email}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Phone className="h-4 w-4" />
-                          {client.phone}
+                          <span>{client.phone}</span>
                         </div>
                       </div>
                     </div>
-                    <Badge variant={client.status === "active" ? "default" : "secondary"}>
-                      {client.status === "active" ? "Ativo" : "Inativo"}
-                    </Badge>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -302,79 +296,84 @@ export function ClientsPage() {
                         </div>
                       </div>
                     </div>
-
-                    <div className="text-right">
-                      <div className="text-lg font-semibold text-primary">
-                        R$ {client.totalSpent.toFixed(2)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Total gasto</div>
-                    </div>
                   </div>
                 </div>
 
-                <div className="flex gap-2 ml-4">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedClient(client)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Detalhes do Cliente</DialogTitle>
-                      </DialogHeader>
-                      {selectedClient && (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label>Nome</Label>
-                              <p className="text-sm">{selectedClient.name}</p>
-                            </div>
-                            <div>
-                              <Label>Status</Label>
-                              <p className="text-sm">
-                                <Badge variant={selectedClient.status === "active" ? "default" : "secondary"}>
-                                  {selectedClient.status === "active" ? "Ativo" : "Inativo"}
-                                </Badge>
-                              </p>
-                            </div>
-                            <div>
-                              <Label>Email</Label>
-                              <p className="text-sm">{selectedClient.email}</p>
-                            </div>
-                            <div>
-                              <Label>Telefone</Label>
-                              <p className="text-sm">{selectedClient.phone}</p>
-                            </div>
-                            <div className="col-span-2">
-                              <Label>Endereço</Label>
-                              <p className="text-sm">{selectedClient.address}, {selectedClient.city}</p>
-                            </div>
-                            <div>
-                              <Label>Data de Cadastro</Label>
-                              <p className="text-sm">{formatDate(selectedClient.registerDate)}</p>
-                            </div>
-                            <div>
-                              <Label>Última Visita</Label>
-                              <p className="text-sm">{formatDate(selectedClient.lastVisit)}</p>
-                            </div>
-                            <div>
-                              <Label>Pets</Label>
-                              <p className="text-sm">{selectedClient.pets.join(", ")}</p>
-                            </div>
-                            <div>
-                              <Label>Total Gasto</Label>
-                              <p className="text-sm font-semibold">R$ {selectedClient.totalSpent.toFixed(2)}</p>
+                <div className="flex flex-col items-end gap-2 ml-4">
+                  <div className="flex gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedClient(client)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Detalhes do Cliente</DialogTitle>
+                        </DialogHeader>
+                        {selectedClient && (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols- gap-4">
+                              <div>
+                                <Label>Nome</Label>
+                                <p className="text-sm">{selectedClient.name}</p>
+                              </div>
+                              <div>
+                                <Label>Status</Label>
+                                <p className="text-sm">
+                                  <Badge variant={selectedClient.status === "active" ? "default" : "secondary"}>
+                                    {selectedClient.status === "active" ? "Ativo" : "Inativo"}
+                                  </Badge>
+                                </p>
+                              </div>
+                              <div>
+                                <Label>Email</Label>
+                                <p className="text-sm">{selectedClient.email}</p>
+                              </div>
+                              <div>
+                                <Label>Telefone</Label>
+                                <p className="text-sm">{selectedClient.phone}</p>
+                              </div>
+                              <div className="col-span-2">
+                                <Label>Endereço</Label>
+                                <p className="text-sm">{selectedClient.address}, {selectedClient.city}</p>
+                              </div>
+                              <div>
+                                <Label>Data de Cadastro</Label>
+                                <p className="text-sm">{formatDate(selectedClient.registerDate)}</p>
+                              </div>
+                              <div>
+                                <Label>Última Visita</Label>
+                                <p className="text-sm">{formatDate(selectedClient.lastVisit)}</p>
+                              </div>
+                              <div>
+                                <Label>Pets</Label>
+                                <p className="text-sm">{selectedClient.pets.join(", ")}</p>
+                              </div>
+                              <div>
+                                <Label>Total Gasto</Label>
+                                <p className="text-sm font-semibold">R$ {selectedClient.totalSpent.toFixed(2)}</p>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </DialogContent>
-                  </Dialog>
-                  
-                  <Button variant="ghost" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                        )}
+                      </DialogContent>
+                    </Dialog>
+
+                    <Button variant="ghost" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="text-lg font-semibold text-primary">
+                    R$ {client.totalSpent.toFixed(2)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Total gasto</div>
+                  <div>
+                    <Badge variant={client.status === "active" ? "default" : "secondary"}>
+                      {client.status === "active" ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -392,7 +391,6 @@ export function ClientsPage() {
         )}
       </div>
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
