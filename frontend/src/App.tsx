@@ -46,7 +46,9 @@ export default function App() {
 
   <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
         <Route index element={<AdminHome />} />
-        <Route path="clients" element={<ClientsPage />} />
+        <Route path="clients" element={
+          authLoading ? <div>Carregando...</div> : <ClientsPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.business_id} currentUserId={auth.id} />
+        } />
         <Route path="schedule" element={<SchedulePage />} />
         <Route path="pets" element={<PetsPage />} />
         <Route path="financial" element={<FinancialPage />} />
