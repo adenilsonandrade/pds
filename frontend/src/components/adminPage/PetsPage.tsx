@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import React, { useEffect, useMemo, useState } from "react";
+import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Badge } from "../ui/badge";
@@ -7,187 +7,166 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "../ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Textarea } from "../ui/textarea";
-import { Search, Plus, Edit, Eye, Calendar, User, Heart, Stethoscope } from "lucide-react";
+import { Search, Plus, Edit, Eye, Calendar, User, Trash2 } from "lucide-react";
+import { getPets, createPet, updatePet, deletePet, Pet } from "../../services/pets";
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "../ui/alert-dialog";
+import { getCustomers, Customer } from "../../services/customers";
 
-interface Pet {
-  id: string;
-  name: string;
-  species: string;
-  breed: string;
-  age: number;
-  weight: number;
-  color: string;
-  gender: "male" | "female";
-  ownerId: string;
-  ownerName: string;
-  registerDate: string;
-  lastVisit: string;
-  totalAppointments: number;
-  totalSpent: number;
-  notes: string;
-  vaccines: boolean;
-  specialNeeds: string;
-}
-
-const mockPets: Pet[] = [
-  {
-    id: "1",
-    name: "Buddy",
-    species: "Cão",
-    breed: "Golden Retriever",
-    age: 3,
-    weight: 28.5,
-    color: "Dourado",
-    gender: "male",
-    ownerId: "1",
-    ownerName: "João Silva",
-    registerDate: "2024-01-15",
-    lastVisit: "2024-12-01",
-    totalAppointments: 5,
-    totalSpent: 325.00,
-    notes: "Muito dócil, gosta de água",
-    vaccines: true,
-    specialNeeds: ""
-  },
-  {
-    id: "2",
-    name: "Luna",
-    species: "Gato",
-    breed: "Persa",
-    age: 2,
-    weight: 4.2,
-    color: "Branco",
-    gender: "female",
-    ownerId: "1",
-    ownerName: "João Silva",
-    registerDate: "2024-01-15",
-    lastVisit: "2024-11-28",
-    totalAppointments: 3,
-    totalSpent: 195.00,
-    notes: "Tímida, não gosta de barulho",
-    vaccines: true,
-    specialNeeds: "Sensível a ruídos"
-  },
-  {
-    id: "3",
-    name: "Max",
-    species: "Cão",
-    breed: "Poodle",
-    age: 5,
-    weight: 12.8,
-    color: "Preto",
-    gender: "male",
-    ownerId: "2",
-    ownerName: "Maria Santos",
-    registerDate: "2024-02-20",
-    lastVisit: "2024-12-15",
-    totalAppointments: 8,
-    totalSpent: 520.00,
-    notes: "Energético, precisa de paciência para tosa",
-    vaccines: true,
-    specialNeeds: ""
-  },
-  {
-    id: "4",
-    name: "Bella",
-    species: "Cão",
-    breed: "Shih Tzu",
-    age: 1,
-    weight: 6.5,
-    color: "Caramelo",
-    gender: "female",
-    ownerId: "2",
-    ownerName: "Maria Santos",
-    registerDate: "2024-02-20",
-    lastVisit: "2024-12-10",
-    totalAppointments: 4,
-    totalSpent: 260.00,
-    notes: "Filhote, primeira vez na tosa",
-    vaccines: false,
-    specialNeeds: "Primeira tosa"
-  }
-];
-
-export function PetsPage() {
+export function PetsPage({ currentBusinessId }: { currentBusinessId?: string | null }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSpecies, setFilterSpecies] = useState("all");
   const [isAddingPet, setIsAddingPet] = useState(false);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
-  const [newPet, setNewPet] = useState({
-    name: "",
-    species: "",
-    breed: "",
-    age: "",
-    weight: "",
-    color: "",
-    gender: "",
-    ownerId: "",
-    notes: "",
-    vaccines: false,
-    specialNeeds: ""
-  });
+  const [newPet, setNewPet] = useState<Partial<Pet>>({});
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingPet, setEditingPet] = useState<Pet | null>(null);
+  const [editValues, setEditValues] = useState<Partial<Pet>>({});
+  const [petToDelete, setPetToDelete] = useState<Pet | null>(null);
 
-  const filteredPets = mockPets.filter(pet => {
-    const matchesSearch = pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         pet.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecies = filterSpecies === "all" || pet.species === filterSpecies;
-    
-    return matchesSearch && matchesSpecies;
-  });
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        const list = await getPets();
+        if (isMounted) setPets(list);
+      } catch (e: any) {
+        if (isMounted) setError(e?.message || "Erro ao carregar pets");
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, []);
 
-  const handleAddPet = () => {
-    setIsAddingPet(false);
-    setNewPet({
-      name: "",
-      species: "",
-      breed: "",
-      age: "",
-      weight: "",
-      color: "",
-      gender: "",
-      ownerId: "",
-      notes: "",
-      vaccines: false,
-      specialNeeds: ""
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const list = await getCustomers();
+        if (isMounted) setCustomers(list);
+      } catch {}
+    })();
+    return () => { isMounted = false; };
+  }, []);
+
+  const filteredPets = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return pets.filter((pet) => {
+      const matchesSearch = !term ||
+        pet.name.toLowerCase().includes(term) ||
+        (pet.customer_name?.toLowerCase().includes(term) ?? false) ||
+        (pet.breed?.toLowerCase().includes(term) ?? false);
+      const matchesSpecies = filterSpecies === "all" || pet.species === filterSpecies;
+      return matchesSearch && matchesSpecies;
     });
-  };
+  }, [pets, searchTerm, filterSpecies]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+  async function handleAddPet() {
+    setLoading(true);
+    setError(null);
+    try {
+      await createPet({
+        name: newPet.name || "",
+        species: newPet.species || "",
+        breed: newPet.breed || null,
+        age: newPet.age != null ? Number(newPet.age) : null,
+        weight: newPet.weight != null ? Number(newPet.weight) : null,
+        color: newPet.color || null,
+        gender: (newPet.gender as Pet["gender"]) ?? null,
+        customer_id: newPet.customer_id ?? null,
+        notes: newPet.notes ?? null,
+        vaccines: Boolean(newPet.vaccines),
+        special_needs: newPet.special_needs ?? null,
+        business_id: currentBusinessId ?? null,
+      });
+      setIsAddingPet(false);
+      setNewPet({});
+      const list = await getPets();
+      setPets(list);
+    } catch (e: any) {
+      setError(e?.message || "Erro ao cadastrar pet");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  const getAgeText = (age: number) => {
+  async function handleDeletePet() {
+    if (!petToDelete) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await deletePet(petToDelete.id);
+      setPetToDelete(null);
+      const list = await getPets();
+      setPets(list);
+    } catch (e: any) {
+      setError(e?.message || "Erro ao excluir pet");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function getAgeText(age?: number | null) {
+    if (age == null) return "";
     return age === 1 ? "1 ano" : `${age} anos`;
-  };
+  }
+
+  async function handleUpdatePet() {
+    if (!editingPet) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await updatePet(editingPet.id, {
+        name: editValues.name,
+        species: editValues.species,
+        breed: editValues.breed ?? null,
+        age: editValues.age != null ? Number(editValues.age) : null,
+        weight: editValues.weight != null ? Number(editValues.weight) : null,
+        color: editValues.color ?? null,
+        gender: (editValues.gender as Pet["gender"]) ?? null,
+        customer_id: editValues.customer_id ?? null,
+        notes: editValues.notes ?? null,
+        vaccines: Boolean(editValues.vaccines),
+        special_needs: editValues.special_needs ?? null,
+        business_id: editValues.business_id ?? null,
+      });
+      setIsEditing(false);
+      setEditingPet(null);
+      setEditValues({});
+      const list = await getPets();
+      setPets(list);
+    } catch (e: any) {
+      setError(e?.message || "Erro ao atualizar pet");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <main className="flex-1 space-y-6 p-6">
-      {/* Header */}
+    <main className="flex-1 space-y-6 p-3">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Pets</h1>
-          <p className="text-muted-foreground">
-            Gerencie informações dos pets e histórico de atendimentos
-          </p>
+          <p className="text-muted-foreground">Gerencie informações dos pets e histórico de atendimentos</p>
         </div>
-        
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="text-right">
             <div className="text-2xl font-bold text-primary">{filteredPets.length}</div>
             <div className="text-sm text-muted-foreground">Pets Cadastrados</div>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-accent">
-              {filteredPets.filter(p => p.species === "Cão").length}
-            </div>
+            <div className="text-2xl font-bold text-accent">{filteredPets.filter(p => p.species === "Cão").length}</div>
             <div className="text-sm text-muted-foreground">Cães</div>
           </div>
         </div>
       </div>
 
-      {/* Search and Actions */}
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -211,7 +190,7 @@ export function PetsPage() {
 
         <Dialog open={isAddingPet} onOpenChange={setIsAddingPet}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Cadastrar Pet
             </Button>
@@ -220,23 +199,22 @@ export function PetsPage() {
             <DialogHeader>
               <DialogTitle>Cadastrar Novo Pet</DialogTitle>
             </DialogHeader>
-            
             <div className="space-y-6">
               <div className="space-y-4">
                 <h3 className="font-semibold">Dados do Pet</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="petName">Nome do Pet</Label>
                     <Input
                       id="petName"
-                      value={newPet.name}
-                      onChange={(e) => setNewPet({...newPet, name: e.target.value})}
+                      value={newPet.name || ""}
+                      onChange={(e) => setNewPet({ ...newPet, name: e.target.value })}
                       placeholder="Buddy"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="species">Espécie</Label>
-                    <Select value={newPet.species} onValueChange={(value) => setNewPet({...newPet, species: value})}>
+                    <Select value={newPet.species || ""} onValueChange={(value) => setNewPet({ ...newPet, species: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
@@ -247,14 +225,13 @@ export function PetsPage() {
                     </Select>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="breed">Raça</Label>
                     <Input
                       id="breed"
-                      value={newPet.breed}
-                      onChange={(e) => setNewPet({...newPet, breed: e.target.value})}
+                      value={newPet.breed || ""}
+                      onChange={(e) => setNewPet({ ...newPet, breed: e.target.value })}
                       placeholder="Golden Retriever"
                     />
                   </div>
@@ -262,21 +239,20 @@ export function PetsPage() {
                     <Label htmlFor="color">Cor</Label>
                     <Input
                       id="color"
-                      value={newPet.color}
-                      onChange={(e) => setNewPet({...newPet, color: e.target.value})}
+                      value={newPet.color || ""}
+                      onChange={(e) => setNewPet({ ...newPet, color: e.target.value })}
                       placeholder="Dourado"
                     />
                   </div>
                 </div>
-
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="age">Idade (anos)</Label>
                     <Input
                       id="age"
                       type="number"
-                      value={newPet.age}
-                      onChange={(e) => setNewPet({...newPet, age: e.target.value})}
+                      value={newPet.age ?? ""}
+                      onChange={(e) => setNewPet({ ...newPet, age: e.target.value === "" ? null : Number(e.target.value) })}
                       placeholder="3"
                     />
                   </div>
@@ -286,14 +262,14 @@ export function PetsPage() {
                       id="weight"
                       type="number"
                       step="0.1"
-                      value={newPet.weight}
-                      onChange={(e) => setNewPet({...newPet, weight: e.target.value})}
+                      value={newPet.weight ?? ""}
+                      onChange={(e) => setNewPet({ ...newPet, weight: e.target.value === "" ? null : Number(e.target.value) })}
                       placeholder="28.5"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="gender">Sexo</Label>
-                    <Select value={newPet.gender} onValueChange={(value) => setNewPet({...newPet, gender: value})}>
+                    <Select value={newPet.gender || ""} onValueChange={(value) => setNewPet({ ...newPet, gender: value as Pet["gender"] })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
@@ -304,93 +280,208 @@ export function PetsPage() {
                     </Select>
                   </div>
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="owner">Tutor</Label>
-                  <Select value={newPet.ownerId} onValueChange={(value) => setNewPet({...newPet, ownerId: value})}>
+                  <Label htmlFor="customer">Cliente</Label>
+                  <Select value={newPet.customer_id != null ? String(newPet.customer_id) : ""} onValueChange={(value) => setNewPet({ ...newPet, customer_id: Number(value) })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tutor" />
+                      <SelectValue placeholder="Selecione o cliente" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">João Silva</SelectItem>
-                      <SelectItem value="2">Maria Santos</SelectItem>
-                      <SelectItem value="3">Pedro Costa</SelectItem>
+                      {customers.map(c => (
+                        <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="specialNeeds">Necessidades Especiais</Label>
                   <Input
                     id="specialNeeds"
-                    value={newPet.specialNeeds}
-                    onChange={(e) => setNewPet({...newPet, specialNeeds: e.target.value})}
+                    value={newPet.special_needs || ""}
+                    onChange={(e) => setNewPet({ ...newPet, special_needs: e.target.value })}
                     placeholder="Medicamentos, cuidados especiais..."
                   />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="notes">Observações</Label>
                   <Textarea
                     id="notes"
-                    value={newPet.notes}
-                    onChange={(e) => setNewPet({...newPet, notes: e.target.value})}
+                    value={newPet.notes || ""}
+                    onChange={(e) => setNewPet({ ...newPet, notes: e.target.value })}
                     placeholder="Comportamento, preferências, histórico..."
                     rows={3}
                   />
                 </div>
               </div>
-
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsAddingPet(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleAddPet}>
-                  Cadastrar Pet
-                </Button>
+                <Button variant="outline" onClick={() => setIsAddingPet(false)}>Cancelar</Button>
+                <Button onClick={handleAddPet} disabled={loading}>{loading ? "Salvando..." : "Cadastrar Pet"}</Button>
               </div>
+              {error && (
+                <div className="text-sm text-red-600">{error}</div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isEditing} onOpenChange={(open) => { setIsEditing(open); if (!open) { setEditingPet(null); setEditValues({}); } }}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Editar Pet</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="font-semibold">Dados do Pet</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editPetName">Nome do Pet</Label>
+                    <Input
+                      id="editPetName"
+                      value={editValues.name || ""}
+                      onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
+                      placeholder="Buddy"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editSpecies">Espécie</Label>
+                    <Select value={editValues.species || ""} onValueChange={(value) => setEditValues({ ...editValues, species: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Cão">Cão</SelectItem>
+                        <SelectItem value="Gato">Gato</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editBreed">Raça</Label>
+                    <Input
+                      id="editBreed"
+                      value={editValues.breed || ""}
+                      onChange={(e) => setEditValues({ ...editValues, breed: e.target.value })}
+                      placeholder="Golden Retriever"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editColor">Cor</Label>
+                    <Input
+                      id="editColor"
+                      value={editValues.color || ""}
+                      onChange={(e) => setEditValues({ ...editValues, color: e.target.value })}
+                      placeholder="Dourado"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="editAge">Idade (anos)</Label>
+                    <Input
+                      id="editAge"
+                      type="number"
+                      value={editValues.age ?? ""}
+                      onChange={(e) => setEditValues({ ...editValues, age: e.target.value === "" ? null : Number(e.target.value) })}
+                      placeholder="3"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editWeight">Peso (kg)</Label>
+                    <Input
+                      id="editWeight"
+                      type="number"
+                      step="0.1"
+                      value={editValues.weight ?? ""}
+                      onChange={(e) => setEditValues({ ...editValues, weight: e.target.value === "" ? null : Number(e.target.value) })}
+                      placeholder="28.5"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="editGender">Sexo</Label>
+                    <Select value={editValues.gender || ""} onValueChange={(value) => setEditValues({ ...editValues, gender: value as Pet["gender"] })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Macho</SelectItem>
+                        <SelectItem value="female">Fêmea</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editCustomer">Cliente</Label>
+                  <Select value={editValues.customer_id != null ? String(editValues.customer_id) : ""} onValueChange={(value) => setEditValues({ ...editValues, customer_id: Number(value) })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customers.map(c => (
+                        <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editSpecialNeeds">Necessidades Especiais</Label>
+                  <Input
+                    id="editSpecialNeeds"
+                    value={editValues.special_needs || ""}
+                    onChange={(e) => setEditValues({ ...editValues, special_needs: e.target.value })}
+                    placeholder="Medicamentos, cuidados especiais..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editNotes">Observações</Label>
+                  <Textarea
+                    id="editNotes"
+                    value={editValues.notes || ""}
+                    onChange={(e) => setEditValues({ ...editValues, notes: e.target.value })}
+                    placeholder="Comportamento, preferências, histórico..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsEditing(false)}>Cancelar</Button>
+                <Button onClick={handleUpdatePet} disabled={loading}>{loading ? "Salvando..." : "Salvar alterações"}</Button>
+              </div>
+              {error && (
+                <div className="text-sm text-red-600">{error}</div>
+              )}
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Pet List */}
       <div className="grid gap-4">
         {filteredPets.map((pet) => (
           <Card key={pet.id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1 space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
-                      <Heart className="h-8 w-8 text-white" />
-                    </div>
-                    
-                    <div className="flex-1">
+                  <div className="flex items-start gap-4 flex-col sm:flex-row">
+                    <div className="flex-1 w-full">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-xl">{pet.name}</h3>
                         <Badge variant="outline">
-                          {pet.gender === "male" ? "♂ Macho" : "♀ Fêmea"}
+                          {pet.gender === "male" ? "♂ Macho" : pet.gender === "female" ? "♀ Fêmea" : ""}
                         </Badge>
                         {pet.vaccines && (
-                          <Badge variant="default" className="bg-green-100 text-green-800">
-                            Vacinado
-                          </Badge>
+                          <Badge variant="default" className="bg-green-100 text-green-800">Vacinado</Badge>
                         )}
                       </div>
-                      
                       <div className="text-muted-foreground mb-2">
-                        {pet.species} • {pet.breed} • {pet.color}
+                        {pet.species} {pet.breed ? `• ${pet.breed}` : ""} {pet.color ? `• ${pet.color}` : ""}
                       </div>
-                      
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground flex-wrap">
                         <User className="h-4 w-4" />
-                        Tutor: {pet.ownerName}
+                        Cliente: {pet.customer_name || ""}
                       </div>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <div>
@@ -398,32 +489,7 @@ export function PetsPage() {
                         <div className="text-xs text-muted-foreground">{pet.weight}kg</div>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2">
-                      <Stethoscope className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <div className="text-sm font-medium">{pet.totalAppointments} consultas</div>
-                        <div className="text-xs text-muted-foreground">
-                          Última: {formatDate(pet.lastVisit)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="text-sm font-medium">Necessidades</div>
-                      <div className="text-xs text-muted-foreground">
-                        {pet.specialNeeds || "Nenhuma"}
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <div className="text-lg font-semibold text-primary">
-                        R$ {pet.totalSpent.toFixed(2)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">Total gasto</div>
-                    </div>
                   </div>
-
                   {pet.notes && (
                     <div className="bg-muted/50 p-3 rounded-lg">
                       <div className="text-sm text-muted-foreground">
@@ -432,7 +498,6 @@ export function PetsPage() {
                     </div>
                   )}
                 </div>
-
                 <div className="flex gap-2 ml-4">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -446,14 +511,14 @@ export function PetsPage() {
                       </DialogHeader>
                       {selectedPet && (
                         <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                               <Label>Nome</Label>
                               <p className="text-sm">{selectedPet.name}</p>
                             </div>
                             <div>
-                              <Label>Tutor</Label>
-                              <p className="text-sm">{selectedPet.ownerName}</p>
+                              <Label>Cliente</Label>
+                              <p className="text-sm">{selectedPet.customer_name || ""}</p>
                             </div>
                             <div>
                               <Label>Espécie</Label>
@@ -477,11 +542,11 @@ export function PetsPage() {
                             </div>
                             <div>
                               <Label>Sexo</Label>
-                              <p className="text-sm">{selectedPet.gender === "male" ? "Macho" : "Fêmea"}</p>
+                              <p className="text-sm">{selectedPet.gender === "male" ? "Macho" : selectedPet.gender === "female" ? "Fêmea" : ""}</p>
                             </div>
                             <div className="col-span-2">
                               <Label>Necessidades Especiais</Label>
-                              <p className="text-sm">{selectedPet.specialNeeds || "Nenhuma"}</p>
+                              <p className="text-sm">{selectedPet.special_needs || "Nenhuma"}</p>
                             </div>
                             <div className="col-span-2">
                               <Label>Observações</Label>
@@ -492,22 +557,42 @@ export function PetsPage() {
                       )}
                     </DialogContent>
                   </Dialog>
-                  
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingPet(pet);
+                      setEditValues({
+                        name: pet.name,
+                        species: pet.species,
+                        breed: pet.breed ?? "",
+                        age: pet.age ?? null,
+                        weight: pet.weight ?? null,
+                        color: pet.color ?? "",
+                        gender: pet.gender ?? null,
+                        customer_id: pet.customer_id ?? null,
+                        notes: pet.notes ?? "",
+                        vaccines: Boolean(pet.vaccines),
+                        special_needs: pet.special_needs ?? "",
+                        business_id: pet.business_id ?? null,
+                      });
+                      setIsEditing(true);
+                    }}
+                  >
                     <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setPetToDelete(pet)}>
+                    <Trash2 className="h-4 w-4 text-red-600" />
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
         ))}
-
         {filteredPets.length === 0 && (
           <Card>
             <CardContent className="p-8">
-              <div className="text-center text-muted-foreground">
-                Nenhum pet encontrado para os filtros selecionados.
-              </div>
+              <div className="text-center text-muted-foreground">Nenhum pet encontrado para os filtros selecionados.</div>
             </CardContent>
           </Card>
         )}
@@ -518,45 +603,56 @@ export function PetsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-primary">{mockPets.length}</div>
+              <div className="text-2xl font-bold text-primary">{pets.length}</div>
               <div className="text-sm text-muted-foreground">Total Pets</div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-accent">
-                {mockPets.filter(p => p.species === "Cão").length}
-              </div>
+              <div className="text-2xl font-bold text-accent">{pets.filter(p => p.species === "Cão").length}</div>
               <div className="text-sm text-muted-foreground">Cães</div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {mockPets.filter(p => p.species === "Gato").length}
-              </div>
+              <div className="text-2xl font-bold text-green-600">{pets.filter(p => p.species === "Gato").length}</div>
               <div className="text-sm text-muted-foreground">Gatos</div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {mockPets.filter(p => p.vaccines).length}
-              </div>
+              <div className="text-2xl font-bold text-blue-600">{pets.filter(p => p.vaccines).length}</div>
               <div className="text-sm text-muted-foreground">Vacinados</div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={!!petToDelete} onOpenChange={(open) => { if (!open) setPetToDelete(null); }}>
+        <AlertDialogContent className="z-[100]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir pet</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir "{petToDelete?.name}"? Esta ação não poderá ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button variant="destructive" onClick={handleDeletePet} disabled={loading}>
+                {loading ? "Excluindo..." : "Excluir"}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }
+

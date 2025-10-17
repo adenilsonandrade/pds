@@ -4,10 +4,11 @@ const businessController = require('../controllers/businessController.js');
 
 
 router.get('/:handle/info', businessController.getBusinessInfo);
+
 router.get('/:handle/services', businessController.getServices);
 
- 
 router.get('/info', businessController.getBusinessInfo);
+
 router.get('/services', businessController.getServices);
 
 module.exports = router;

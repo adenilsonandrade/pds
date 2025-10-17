@@ -59,7 +59,7 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
       case "clients":
         return <ClientsPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.business_id} currentUserId={auth.id} />;
       case "pets":
-        return <PetsPage />;
+        return <PetsPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.business_id} currentUserId={auth.id} />;
       case "financial":
         return <FinancialPage />;
       case "reports":

@@ -50,7 +50,9 @@ export default function App() {
           authLoading ? <div>Carregando...</div> : <ClientsPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.business_id} currentUserId={auth.id} />
         } />
         <Route path="schedule" element={<SchedulePage />} />
-        <Route path="pets" element={<PetsPage />} />
+        <Route path="pets" element={
+          authLoading ? <div>Carregando...</div> : <PetsPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.business_id} currentUserId={auth.id} />
+        } />
         <Route path="financial" element={<FinancialPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />

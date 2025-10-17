@@ -1,46 +1,58 @@
 import { getToken } from './auth';
 
-export interface Customer {
+export interface Pet {
   id: number | string;
   name: string;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-  city?: string | null;
+  species: string;
+  breed?: string | null;
+  age?: number | null;
+  weight?: number | null;
+  color?: string | null;
+  gender?: 'male' | 'female' | null;
+  customer_id?: number | string | null;
+  customer_name?: string | null;
   notes?: string | null;
+  vaccines?: boolean;
+  special_needs?: string | null;
   business_id: string;
   business_name?: string | null;
   created_at?: string;
   updated_at?: string;
 }
 
-export interface CreateCustomerPayload {
+export interface CreatePetPayload {
   name: string;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-  city?: string | null;
+  species: string;
+  breed?: string | null;
+  age?: number | null;
+  weight?: number | null;
+  color?: string | null;
+  gender?: 'male' | 'female' | null;
+  customer_id?: number | string | null;
   notes?: string | null;
+  vaccines?: boolean;
+  special_needs?: string | null;
   business_id?: string | null;
 }
 
-export interface UpdateCustomerPayload {
+export interface UpdatePetPayload {
   name?: string;
-  email?: string | null;
-  phone?: string | null;
-  address?: string | null;
-  city?: string | null;
+  species?: string;
+  breed?: string | null;
+  age?: number | null;
+  weight?: number | null;
+  color?: string | null;
+  gender?: 'male' | 'female' | null;
+  customer_id?: number | string | null;
   notes?: string | null;
+  vaccines?: boolean;
+  special_needs?: string | null;
   business_id?: string | null;
 }
 
-export async function getCustomers(params?: { business_id?: string | null; q?: string | null }): Promise<Customer[]> {
+export async function getPets(): Promise<Pet[]> {
   const token = getToken();
-  const qs = new URLSearchParams();
-  if (params?.business_id) qs.set('business_id', params.business_id);
-  if (params?.q) qs.set('q', params.q);
-  const url = qs.toString() ? `/api/customers?${qs.toString()}` : '/api/customers';
-  const res = await fetch(url, {
+  const res = await fetch('/api/pets', {
     method: 'GET',
     cache: 'no-store',
     headers: {
@@ -50,14 +62,14 @@ export async function getCustomers(params?: { business_id?: string | null; q?: s
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || `Failed to fetch customers (${res.status})`);
+    throw new Error(body.message || `Failed to fetch pets (${res.status})`);
   }
   return res.json();
 }
 
-export async function getCustomer(id: number | string): Promise<Customer> {
+export async function getPet(id: number | string): Promise<Pet> {
   const token = getToken();
-  const res = await fetch(`/api/customers/${id}`, {
+  const res = await fetch(`/api/pets/${id}`, {
     method: 'GET',
     cache: 'no-store',
     headers: {
@@ -67,14 +79,14 @@ export async function getCustomer(id: number | string): Promise<Customer> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || `Failed to fetch customer (${res.status})`);
+    throw new Error(body.message || `Failed to fetch pet (${res.status})`);
   }
   return res.json();
 }
 
-export async function createCustomer(payload: CreateCustomerPayload): Promise<Customer> {
+export async function createPet(payload: CreatePetPayload): Promise<Pet> {
   const token = getToken();
-  const res = await fetch('/api/customers', {
+  const res = await fetch('/api/pets', {
     method: 'POST',
     cache: 'no-store',
     headers: {
@@ -85,14 +97,14 @@ export async function createCustomer(payload: CreateCustomerPayload): Promise<Cu
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || `Failed to create customer (${res.status})`);
+    throw new Error(body.message || `Failed to create pet (${res.status})`);
   }
   return res.json();
 }
 
-export async function updateCustomer(id: number | string, payload: UpdateCustomerPayload): Promise<Customer> {
+export async function updatePet(id: number | string, payload: UpdatePetPayload): Promise<Pet> {
   const token = getToken();
-  const res = await fetch(`/api/customers/${id}`, {
+  const res = await fetch(`/api/pets/${id}`, {
     method: 'PUT',
     cache: 'no-store',
     headers: {
@@ -103,14 +115,14 @@ export async function updateCustomer(id: number | string, payload: UpdateCustome
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || `Failed to update customer (${res.status})`);
+    throw new Error(body.message || `Failed to update pet (${res.status})`);
   }
   return res.json();
 }
 
-export async function deleteCustomer(id: number | string): Promise<void> {
+export async function deletePet(id: number | string): Promise<void> {
   const token = getToken();
-  const res = await fetch(`/api/customers/${id}`, {
+  const res = await fetch(`/api/pets/${id}`, {
     method: 'DELETE',
     cache: 'no-store',
     headers: {
@@ -120,7 +132,7 @@ export async function deleteCustomer(id: number | string): Promise<void> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || `Failed to delete customer (${res.status})`);
+    throw new Error(body.message || `Failed to delete pet (${res.status})`);
   }
   return res.json();
 }
