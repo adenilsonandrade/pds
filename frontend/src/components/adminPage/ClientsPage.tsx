@@ -7,8 +7,9 @@ import { Badge } from "../ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import { Search, Plus, Edit, Eye, Phone, Mail, MapPin, Calendar, PawPrint, Trash2, Info } from "lucide-react";
+import { Search, Plus, Edit, Eye, Phone, Mail, MapPin, Calendar, PawPrint, Trash2, Info, Users, DollarSign } from "lucide-react";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer, Customer } from "../../services/customers";
+import { getPets, Pet } from '../../services/pets';
 import { getBusinesses } from "../../services/businesses";
 
 type Role = 'support' | 'admin' | 'user';
@@ -21,6 +22,9 @@ interface Props {
 
 export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, currentUserId }) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [totalVisits, setTotalVisits] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [activeClients, setActiveClients] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -45,6 +49,8 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
     business_id: null
   });
   const [businesses, setBusinesses] = useState<Array<{ id: string; brand_name: string }>>([]);
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [petsByCustomer, setPetsByCustomer] = useState<Record<string, Pet[]>>({});
 
   const location = useLocation();
 
@@ -73,6 +79,74 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
     }
     load();
   }, [location.pathname, currentRole]);
+
+  // Load pets and index them by customer_id
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const allPets = await getPets();
+        if (!isMounted) return;
+        setPets(allPets || []);
+        const map: Record<string, Pet[]> = {};
+        (allPets || []).forEach(p => {
+          const key = p.customer_id != null ? String(p.customer_id) : '__no_customer__';
+          if (!map[key]) map[key] = [];
+          map[key].push(p);
+        });
+        setPetsByCustomer(map);
+      } catch (e) {
+        // ignore if pets cannot be loaded (permissions) - pets list will be empty
+        console.error('Could not load pets:', e);
+      }
+    })();
+    return () => { isMounted = false; };
+  }, [location.pathname]);
+
+  // Compute active clients (heuristic: customers with activity in last 6 months)
+  useEffect(() => {
+    const now = Date.now();
+    const sixMonthsMs = 180 * 24 * 60 * 60 * 1000; // ~180 days
+    const active = customers.filter((c) => {
+      const dateStr = c.updated_at || c.created_at;
+      if (!dateStr) return false;
+      const t = new Date(dateStr).getTime();
+      if (Number.isNaN(t)) return false;
+      return (now - t) <= sixMonthsMs;
+    }).length;
+    setActiveClients(active);
+  }, [customers]);
+
+  // Try to load appointments to calculate visits and revenue. If endpoint not available, fall back to zeros.
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/appointments', { method: 'GET', cache: 'no-store' });
+        if (!res.ok) return; // endpoint missing or protected
+        const apps = await res.json();
+        if (!isMounted || !Array.isArray(apps)) return;
+        const visits = apps.length;
+        // try to extract numeric price from possible fields
+        const revenue = apps.reduce((sum: number, a: any) => {
+          if (!a) return sum;
+          if (typeof a.price === 'number') return sum + a.price;
+          if (typeof a.price === 'string') {
+            // Accept formats like "R$ 80,00" or "80.00"
+            const parsed = Number(String(a.price).replace(/[^0-9,.-]/g, '').replace(',', '.'));
+            return sum + (Number.isNaN(parsed) ? 0 : parsed);
+          }
+          if (typeof a.value === 'number') return sum + a.value;
+          return sum;
+        }, 0);
+        setTotalVisits(visits);
+        setTotalRevenue(revenue);
+      } catch (e) {
+        // ignore — keep zeros
+      }
+    })();
+    return () => { isMounted = false; };
+  }, []);
 
   function openCreate() {
     setFormMode('create');
@@ -200,6 +274,8 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
         </div>
       </div>
 
+      {/* (cards moved below the customers list) */}
+
       <div className="flex flex-col lg:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -324,99 +400,94 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
           <div>Carregando...</div>
         ) : (
           <>
-            {/* Tabela Desktop */}
-            <Card className="hidden md:block">
-              <CardContent>
-                <div className="overflow-x-auto bg-white rounded-md">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="p-2">Nome</th>
-                        <th className="p-2">Contato</th>
-                        <th className="p-2">Localização</th>
-                        {currentRole === 'support' && <th className="p-2">Petshop</th>}
-                        <th className="p-2">Cadastro</th>
-                        <th className="p-2">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredCustomers.map((customer) => (
-                        <tr key={customer.id} className="border-b hover:bg-gray-50">
-                          <td className="p-2 align-top">
-                            <div className="font-medium">{customer.name}</div>
-                          </td>
-                          <td className="p-2 align-top">
-                            <div className="flex flex-col gap-1 text-sm">
-                              {customer.email && (
-                                <div className="flex items-center gap-1">
-                                  <Mail className="h-3 w-3" />
-                                  <span>{customer.email}</span>
+            {/* Clientes em cards (desktop) - sem wrapper Card */}
+            <div className="hidden md:block">
+              <div className="grid grid-cols-1 gap-4">
+                {filteredCustomers.map((customer) => (
+                  <Card key={customer.id} className="hover:shadow-lg">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 pr-4">
+                          <div className="font-medium text-lg">{customer.name}</div>
+                          <div className="text-sm text-muted-foreground mt-2 space-y-1">
+                            {customer.email && (
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-4 w-4" />
+                                <span>{customer.email}</span>
+                              </div>
+                            )}
+                            {customer.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4" />
+                                <span>{customer.phone}</span>
+                              </div>
+                            )}
+                            {customer.city && (
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                <span>{customer.city}</span>
+                              </div>
+                            )}
+                            {/* Pets linked to this customer: paw icon + two-line info (count + names) */}
+                            {(() => {
+                              const petsFor = (petsByCustomer[String(customer.id)] ?? []);
+                              if (petsFor.length === 0) return null;
+                              const names = petsFor.map(p => p.name).join(', ');
+                              return (
+                                <div className="mt-2 flex items-center gap-3">
+                                  <PawPrint className="h-6 w-6 text-accent flex-shrink-0" />
+                                  <div className="min-w-0">
+                                    <div className="text-sm font-medium">{petsFor.length} pet{petsFor.length > 1 ? 's' : ''}</div>
+                                    <div className="text-xs text-muted-foreground truncate max-w-[36rem]">{names}</div>
+                                  </div>
                                 </div>
-                              )}
-                              {customer.phone && (
-                                <div className="flex items-center gap-1">
-                                  <Phone className="h-3 w-3" />
-                                  <span>{customer.phone}</span>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="p-2 align-top">
-                            <div className="text-sm">
-                              {customer.address && <div>{customer.address}</div>}
-                              {customer.city && <div className="text-muted-foreground">{customer.city}</div>}
-                              {!customer.address && !customer.city && '—'}
-                            </div>
-                          </td>
-                          {currentRole === 'support' && (
-                            <td className="p-2 align-top">{customer.business_name || customer.business_id || '—'}</td>
-                          )}
-                          <td className="p-2 align-top">{formatDate(customer.created_at)}</td>
-                          <td className="p-2 align-top">
-                            <div className="flex gap-2 items-center">
+                              );
+                            })()}
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-3">Cadastro: {formatDate(customer.created_at)}</div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            aria-label={`Detalhes de ${customer.name}`}
+                            onClick={() => openDetails(customer)}
+                          >
+                            <Info className="h-4 w-4" />
+                          </Button>
+
+                          {canEditRow(customer) ? (
+                            <>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                aria-label={`Detalhes de ${customer.name}`}
-                                onClick={() => openDetails(customer)}
+                                aria-label={`Editar ${customer.name}`}
+                                onClick={() => openEdit(customer)}
                               >
-                                <Info className="h-4 w-4" />
+                                <Edit className="h-4 w-4" />
                               </Button>
-
-                              {canEditRow(customer) && (
-                                <>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    aria-label={`Editar ${customer.name}`}
-                                    onClick={() => openEdit(customer)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    aria-label={`Excluir ${customer.name}`}
-                                    onClick={() => handleDelete(customer.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </>
-                              )}
-
-                              {!canEditRow(customer) && <span className="text-sm text-muted-foreground">Sem permissão</span>}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                aria-label={`Excluir ${customer.name}`}
+                                onClick={() => handleDelete(customer.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">Sem permissão</span>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
 
             {/* Cards Mobile */}
             <div className="md:hidden space-y-3">
@@ -449,6 +520,21 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
                             Petshop: {customer.business_name || customer.business_id || '—'}
                           </div>
                         )}
+                        {/* Pets (mobile) - paw + two-line info */}
+                        {(() => {
+                          const petsFor = (petsByCustomer[String(customer.id)] ?? []);
+                          if (petsFor.length === 0) return null;
+                          const names = petsFor.map(p => p.name).join(', ');
+                          return (
+                            <div className="text-sm text-muted-foreground mt-2 flex items-center gap-3">
+                              <PawPrint className="h-5 w-5 text-accent flex-shrink-0" />
+                              <div className="min-w-0">
+                                <div className="text-sm font-medium">{petsFor.length} pet{petsFor.length > 1 ? 's' : ''}</div>
+                                <div className="text-xs truncate max-w-[20rem]">{names}</div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -498,6 +584,63 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
                 </CardContent>
               </Card>
             )}
+
+            {/* KPI Cards (moved below the customers list) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total de Clientes</p>
+                      <h3 className="text-2xl font-bold text-primary">{customers.length}</h3>
+                      <p className="text-xs text-muted-foreground">Clientes cadastrados no petshop</p>
+                    </div>
+                    <Users className="h-8 w-8 text-primary" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Clientes Ativos</p>
+                      <h3 className="text-2xl font-bold text-accent">{activeClients}</h3>
+                      <p className="text-xs text-muted-foreground">Atividade nos últimos 6 meses</p>
+                    </div>
+                    <PawPrint className="h-8 w-8 text-accent" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total de Visitas</p>
+                      <h3 className="text-2xl font-bold text-primary">{totalVisits}</h3>
+                      <p className="text-xs text-muted-foreground">Total de agendamentos/atendimentos</p>
+                    </div>
+                    <Calendar className="h-8 w-8 text-primary" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Receita Total</p>
+                      <h3 className="text-2xl font-bold text-accent">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalRevenue)}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">Receita acumulada (sistema)</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-accent" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </>
         )}
       </div>
