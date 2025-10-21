@@ -44,7 +44,6 @@ exports.listAppointments = async (req, res) => {
       qStart = String(date).substring(0, 10);
       qEnd = qStart;
     } else {
-
       const today = new Date().toISOString().substring(0, 10);
       qStart = today; qEnd = today;
     }
@@ -155,10 +154,19 @@ exports.createAppointment = async (req, res) => {
     let serviceId = null;
     let serviceValue = null;
     if (service) {
-      const [serviceRows] = await pool.query('SELECT id, value FROM services WHERE name = ? AND business_id = ?', [service, businessId]);
-      if (serviceRows && serviceRows.length > 0) {
-        serviceId = serviceRows[0].id;
-        serviceValue = serviceRows[0].value;
+      const sStr = String(service);
+      if (/^\d+$/.test(sStr)) {
+        const [serviceRows] = await pool.query('SELECT id, value FROM services WHERE id = ? AND business_id = ?', [sStr, businessId]);
+        if (serviceRows && serviceRows.length > 0) {
+          serviceId = serviceRows[0].id;
+          serviceValue = serviceRows[0].value;
+        }
+      } else {
+        const [serviceRows] = await pool.query('SELECT id, value FROM services WHERE name = ? AND business_id = ?', [service, businessId]);
+        if (serviceRows && serviceRows.length > 0) {
+          serviceId = serviceRows[0].id;
+          serviceValue = serviceRows[0].value;
+        }
       }
     }
 
@@ -191,7 +199,7 @@ exports.createAppointment = async (req, res) => {
 
 exports.updateAppointment = async (req, res) => {
   const { id } = req.params;
-  const { status, price, time, date, notes } = req.body;
+  const { status, time, date, notes, service, service_id } = req.body;
   try {
     const requesterId = req.user && req.user.sub;
     if (!requesterId) return res.status(401).json({ message: 'Não autenticado' });
@@ -214,10 +222,52 @@ exports.updateAppointment = async (req, res) => {
     const updates = [];
     const params = [];
     if (status) { updates.push('status = ?'); params.push(status); }
-    if (price !== undefined) { updates.push('price = ?'); params.push(price); }
     if (time) { updates.push('time = ?'); params.push(time); }
-    if (date) { updates.push('date = ?'); params.push(date); }
+    if (date) {
+      const dStr = String(date);
+      const sanitizedDate = dStr.includes('T') ? dStr.substring(0, 10) : dStr.substring(0, 10);
+      updates.push('date = ?'); params.push(sanitizedDate);
+    }
     if (notes !== undefined) { updates.push('notes = ?'); params.push(notes); }
+
+    let resolvedServiceId = null;
+    let resolvedPrice = null;
+    if (service_id !== undefined || service !== undefined) {
+      const bId = appointment.business_id;
+      if (service_id) {
+        const [srows] = await pool.query('SELECT id, value FROM services WHERE id = ? AND business_id = ?', [service_id, bId]);
+        if (srows && srows.length > 0) {
+          resolvedServiceId = srows[0].id;
+          resolvedPrice = srows[0].value;
+        } else {
+          return res.status(404).json({ message: 'Serviço não encontrado' });
+        }
+      } else if (service !== undefined) {
+        const sStr = service === null ? '' : String(service);
+        if (/^\d+$/.test(sStr)) {
+          const [srows] = await pool.query('SELECT id, value FROM services WHERE id = ? AND business_id = ?', [sStr, bId]);
+          if (srows && srows.length > 0) {
+            resolvedServiceId = srows[0].id;
+            resolvedPrice = srows[0].value;
+          } else {
+            return res.status(404).json({ message: 'Serviço não encontrado' });
+          }
+        } else if (sStr === 'none' || sStr === '' || sStr === null) {
+          resolvedServiceId = null;
+          resolvedPrice = null;
+        } else {
+          const [srows] = await pool.query('SELECT id, value FROM services WHERE name = ? AND business_id = ?', [sStr, bId]);
+          if (srows && srows.length > 0) {
+            resolvedServiceId = srows[0].id;
+            resolvedPrice = srows[0].value;
+          } else {
+            return res.status(404).json({ message: 'Serviço não encontrado' });
+          }
+        }
+      }
+
+  updates.push('service_id = ?'); params.push(resolvedServiceId);
+    }
     if (updates.length === 0) return res.status(400).json({ message: 'No fields to update' });
     params.push(id);
     const query = `UPDATE appointments SET ${updates.join(', ')} WHERE id = ?`;
