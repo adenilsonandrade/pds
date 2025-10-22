@@ -6,7 +6,9 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Calendar, ChevronLeft, ChevronRight, Filter, Plus, Search, Eye, Grid, List, Edit3, X, PawPrint } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Filter, Plus, Search, Eye, Grid, List, Edit3, X, PawPrint, Trash2, CheckCircle, DollarSign, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
 import { updateAppointment } from '../../services/appointments';
 import NewAppointmentForm from './NewAppointmentForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
@@ -14,7 +16,7 @@ import ErrorBoundary from '../ErrorBoundary';
 import { getServices, Service as ServiceItem } from '../../services/services';
 
 type ViewType = "month" | "week" | "day";
-type StatusType = "confirmed" | "scheduled" | "completed" | "cancelled";
+type StatusType = "confirmed" | "scheduled" | "completed" | "canceled";
 
 interface Appointment {
   id: string | number;
@@ -32,14 +34,14 @@ const statusColors: Record<StatusType, string> = {
   confirmed: "bg-green-100 text-green-800",
   scheduled: "bg-yellow-100 text-yellow-800", 
   completed: "bg-blue-100 text-blue-800",
-  cancelled: "bg-red-100 text-red-800"
+  canceled: "bg-red-100 text-red-800"
 };
 
 const statusLabels: Record<StatusType, string> = {
   confirmed: "Confirmado",
   scheduled: "Agendado",
   completed: "Concluído",
-  cancelled: "Cancelado"
+  canceled: "Cancelado"
 };
 
 export function SchedulePage() {
@@ -81,6 +83,7 @@ export function SchedulePage() {
 
   const totalDayValue = filteredAppointments.reduce((sum, apt) => sum + apt.value, 0);
   const confirmedCount = filteredAppointments.filter(apt => apt.status === "confirmed").length;
+  const canceledCount = filteredAppointments.filter(apt => String(apt.status) === "canceled").length;
 
   const formatDate = (date: Date) => {
     if (currentView === 'month') {
@@ -288,6 +291,7 @@ export function SchedulePage() {
 
   const [viewingAppointment, setViewingAppointment] = useState<any | null>(null);
   const [editingAppointment, setEditingAppointment] = useState<any | null>(null);
+  const [appointmentToDelete, setAppointmentToDelete] = useState<any | null>(null);
   const [editDate, setEditDate] = useState('');
   const [editTime, setEditTime] = useState('');
   const [editNotes, setEditNotes] = useState('');
@@ -346,14 +350,18 @@ export function SchedulePage() {
   };
 
   const handleCancelAppointment = async (apt: any) => {
-    const ok = window.confirm('Cancelar este agendamento?');
-    if (!ok) return;
+    setAppointmentToDelete(apt);
+  };
+
+  const confirmCancelAppointment = async () => {
+    if (!appointmentToDelete) return;
     try {
       setLoading(true);
-      await updateAppointment(apt.id, { status: 'cancelled' });
+      await updateAppointment(appointmentToDelete.id, { status: 'canceled' });
+      setAppointmentToDelete(null);
       await handleNewCreated();
     } catch (e:any) {
-      setError(e?.message || 'Falha ao cancelar agendamento');
+      setError(e?.message || 'Falha ao excluir agendamento');
     } finally {
       setLoading(false);
     }
@@ -462,7 +470,7 @@ export function SchedulePage() {
                 <SelectItem value="confirmed">Confirmado</SelectItem>
                 <SelectItem value="scheduled">Agendado</SelectItem>
                 <SelectItem value="completed">Concluído</SelectItem>
-                <SelectItem value="cancelled">Cancelado</SelectItem>
+                <SelectItem value="canceled">Cancelado</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -523,15 +531,37 @@ export function SchedulePage() {
                       </div>
 
                       <div className="flex gap-2 ml-auto items-center">
-                        <Button variant="ghost" size="sm" onClick={() => openView(appointment)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => openEdit(appointment)}>
-                          <Edit3 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleCancelAppointment(appointment)}>
-                          <X className="h-4 w-4" />
-                        </Button>
+                        <div className="hidden md:flex gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => openView(appointment)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => openEdit(appointment)}>
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleCancelAppointment(appointment)}>
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
+                        <div className="md:hidden">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onSelect={() => openView(appointment)}>
+                                <Eye className="h-4 w-4 mr-2" /> Ver
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => openEdit(appointment)}>
+                                <Edit3 className="h-4 w-4 mr-2" /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => handleCancelAppointment(appointment)} className="text-destructive" variant="destructive">
+                                <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -591,15 +621,38 @@ export function SchedulePage() {
                             </div>
 
                             <div className="flex gap-2 ml-auto items-center">
-                              <Button variant="ghost" size="sm" onClick={() => openView(appointment)}>
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => openEdit(appointment)}>
-                                <Edit3 className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleCancelAppointment(appointment)}>
-                                <X className="h-4 w-4" />
-                              </Button>
+                              <div className="hidden md:flex gap-2">
+                                <Button variant="ghost" size="sm" onClick={() => openView(appointment)}>
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => openEdit(appointment)}>
+                                  <Edit3 className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleCancelAppointment(appointment)}>
+                                  <Trash2 className="h-4 w-4 text-red-600" />
+                                </Button>
+                              </div>
+
+                              <div className="md:hidden">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onSelect={() => openView(appointment)}>
+                                      <Eye className="h-4 w-4 mr-2" /> Ver
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => openEdit(appointment)}>
+                                      <Edit3 className="h-4 w-4 mr-2" /> Editar
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => handleCancelAppointment(appointment)} className="text-destructive" variant="destructive">
+                                      <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -656,15 +709,38 @@ export function SchedulePage() {
                             </div>
 
                             <div className="flex gap-2 ml-auto items-center">
-                              <Button variant="ghost" size="sm" onClick={() => openView(appointment)}>
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => openEdit(appointment)}>
-                                <Edit3 className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleCancelAppointment(appointment)}>
-                                <X className="h-4 w-4" />
-                              </Button>
+                              <div className="hidden md:flex gap-2">
+                                <Button variant="ghost" size="sm" onClick={() => openView(appointment)}>
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => openEdit(appointment)}>
+                                  <Edit3 className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleCancelAppointment(appointment)}>
+                                  <Trash2 className="h-4 w-4 text-red-600" />
+                                </Button>
+                              </div>
+
+                              <div className="md:hidden">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onSelect={() => openView(appointment)}>
+                                      <Eye className="h-4 w-4 mr-2" /> Ver
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => openEdit(appointment)}>
+                                      <Edit3 className="h-4 w-4 mr-2" /> Editar
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => handleCancelAppointment(appointment)} className="text-destructive" variant="destructive">
+                                      <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -691,7 +767,6 @@ export function SchedulePage() {
           </div>
         </DialogContent>
       </Dialog>
-
       <Dialog open={!!viewingAppointment} onOpenChange={(open) => { if (!open) setViewingAppointment(null); }}>
   <DialogContent className="max-h-[90vh] p-4 w-full">
           <DialogHeader>
@@ -763,51 +838,76 @@ export function SchedulePage() {
         </DialogContent>
       </Dialog>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
         <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {filteredAppointments.filter(apt => apt.status === "confirmed").length}
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Confirmados</p>
+                <h3 className="text-2xl font-bold text-green-600">{filteredAppointments.filter(apt => apt.status === "confirmed").length}</h3>
+                <p className="text-xs text-muted-foreground">Agendamentos confirmados</p>
               </div>
-              <div className="text-sm text-muted-foreground">Confirmados</div>
+              <PawPrint className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">
-                {filteredAppointments.filter(apt => apt.status === "scheduled").length}
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Agendados</p>
+                <h3 className="text-2xl font-bold text-yellow-600">{filteredAppointments.filter(apt => apt.status === "scheduled").length}</h3>
+                <p className="text-xs text-muted-foreground">Agendamentos pendentes</p>
               </div>
-              <div className="text-sm text-muted-foreground">Agendados</div>
+              <Calendar className="h-8 w-8 text-yellow-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {filteredAppointments.filter(apt => apt.status === "completed").length}
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Concluídos</p>
+                <h3 className="text-2xl font-bold text-blue-600">{filteredAppointments.filter(apt => apt.status === "completed").length}</h3>
+                <p className="text-xs text-muted-foreground">Atendimentos finalizados</p>
               </div>
-              <div className="text-sm text-muted-foreground">Concluídos</div>
+              <CheckCircle className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary">
-                R$ {totalDayValue.toFixed(2)}
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Cancelados</p>
+                <h3 className="text-2xl font-bold text-red-600">{canceledCount}</h3>
+                <p className="text-xs text-muted-foreground">Agendamentos cancelados</p>
               </div>
-              <div className="text-sm text-muted-foreground">Total</div>
+              <Trash2 className="h-8 w-8 text-red-600" />
             </div>
           </CardContent>
         </Card>
       </div>
+
+              <AlertDialog open={!!appointmentToDelete} onOpenChange={(open) => { if (!open) setAppointmentToDelete(null); }}>
+                <AlertDialogContent className="z-[100]">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir agendamento</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tem certeza que deseja excluir o agendamento de "{appointmentToDelete?.petName}" em {appointmentToDelete?.date} às {appointmentToDelete?.time}? Esta ação pode ser revertida alterando o status posteriormente.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                      <Button variant="destructive" onClick={confirmCancelAppointment} disabled={loading}>{loading ? 'Excluindo...' : 'Excluir'}</Button>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
     </main>
     </ErrorBoundary>
   );

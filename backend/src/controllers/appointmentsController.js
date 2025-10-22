@@ -199,7 +199,9 @@ exports.createAppointment = async (req, res) => {
 
 exports.updateAppointment = async (req, res) => {
   const { id } = req.params;
-  const { status, time, date, notes, service, service_id } = req.body;
+  const { time, date, notes, service, service_id } = req.body;
+  let status = req.body && req.body.status !== undefined ? req.body.status : undefined;
+  if (typeof status === 'string' && status.toLowerCase() === 'cancelled') status = 'canceled';
   try {
     const requesterId = req.user && req.user.sub;
     if (!requesterId) return res.status(401).json({ message: 'Não autenticado' });
@@ -212,16 +214,16 @@ exports.updateAppointment = async (req, res) => {
 
     if (requester.role === 'support') {
     } else if (requester.role === 'admin' || requester.role === 'user') {
-      if (!requester.business_id || appointment.business_id !== requester.business_id) {
+      if (!requester.business_id || String(appointment.business_id) !== String(requester.business_id)) {
         return res.status(403).json({ message: 'Não autorizado para atualizar este agendamento' });
       }
     } else {
       return res.status(403).json({ message: 'Permissão negada' });
     }
 
-    const updates = [];
-    const params = [];
-    if (status) { updates.push('status = ?'); params.push(status); }
+  const updates = [];
+  const params = [];
+  if (status) { updates.push('status = ?'); params.push(status); }
     if (time) { updates.push('time = ?'); params.push(time); }
     if (date) {
       const dStr = String(date);

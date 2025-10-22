@@ -18,7 +18,7 @@ interface FinancialEntry {
   client: string;
   pet: string;
   amount: number;
-  status: "confirmed" | "pending" | "received" | "cancelled";
+  status: "confirmed" | "pending" | "received" | "canceled";
   type: "income" | "expense";
 }
 
@@ -100,14 +100,14 @@ const statusColors = {
   confirmed: "bg-blue-100 text-blue-800",
   pending: "bg-yellow-100 text-yellow-800",
   received: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800"
+  canceled: "bg-red-100 text-red-800"
 };
 
 const statusLabels = {
   confirmed: "Confirmado",
   pending: "Pendente",
   received: "Recebido",
-  cancelled: "Cancelado"
+  canceled: "Cancelado"
 };
 
 export function FinancialPage() {
@@ -380,12 +380,12 @@ export function FinancialPage() {
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Todos os status" />
             </SelectTrigger>
-            <SelectContent>
+              <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="received">Recebido</SelectItem>
               <SelectItem value="confirmed">Confirmado</SelectItem>
               <SelectItem value="pending">Pendente</SelectItem>
-              <SelectItem value="cancelled">Cancelado</SelectItem>
+              <SelectItem value="canceled">Cancelado</SelectItem>
             </SelectContent>
           </Select>
         </CardHeader>
