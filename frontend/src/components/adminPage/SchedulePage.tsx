@@ -6,8 +6,8 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Calendar, ChevronLeft, ChevronRight, Filter, Plus, Search, Eye, Grid, List, Edit3, X, PawPrint, Trash2, CheckCircle, DollarSign, MoreHorizontal } from "lucide-react";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "../ui/dropdown-menu";
+import { Calendar, ChevronLeft, ChevronRight, ChevronDown, Filter, Plus, Search, Eye, Grid, List, Edit3, X, PawPrint, Trash2, CheckCircle, DollarSign, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem } from "../ui/dropdown-menu";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
 import { updateAppointment } from '../../services/appointments';
 import NewAppointmentForm from './NewAppointmentForm';
@@ -48,8 +48,8 @@ export function SchedulePage() {
   const [currentView, setCurrentView] = useState<ViewType>("day");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterService, setFilterService] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(["confirmed", "scheduled", "completed"]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -72,11 +72,50 @@ export function SchedulePage() {
     return () => { ignore = true; };
   }, []);
 
+  useEffect(() => {
+    if (services && services.length > 0 && (!selectedServices || selectedServices.length === 0)) {
+      setSelectedServices(services.map((s) => String(s.name)));
+    }
+  }, [services]);
+
+  const toggleService = (name: string) => {
+    setSelectedServices((prev) => {
+      if (!prev) return [name];
+      if (prev.includes(name)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((p) => p !== name);
+      }
+      return [...prev, name];
+    });
+  };
+
+  const toggleStatus = (status: string) => {
+    setSelectedStatuses((prev) => {
+      if (!prev) return [status];
+      if (prev.includes(status)) {
+        if (prev.length === 1) return prev;
+        return prev.filter((p) => p !== status);
+      }
+      return [...prev, status];
+    });
+  };
+
   const filteredAppointments = appointments.filter((appointment) => {
     const matchesSearch = appointment.petName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.ownerName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesService = filterService === "all" || appointment.service === filterService;
-    const matchesStatus = filterStatus === "all" || appointment.status === filterStatus;
+    const matchesService = (() => {
+      if (!services || services.length === 0) return true;
+      if (!selectedServices || selectedServices.length === 0) return false;
+      if (selectedServices.length === services.length) return true;
+      return selectedServices.includes(String(appointment.service));
+    })();
+
+    const allStatuses = ["confirmed", "scheduled", "completed", "canceled"];
+    const matchesStatus = (() => {
+      if (!selectedStatuses || selectedStatuses.length === 0) return false;
+      if (selectedStatuses.length === allStatuses.length) return true;
+      return selectedStatuses.includes(String(appointment.status));
+    })();
 
     return matchesSearch && matchesService && matchesStatus;
   });
@@ -111,6 +150,59 @@ export function SchedulePage() {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const serviceTriggerLabel = (() => {
+    if (services && selectedServices && selectedServices.length === services.length) return 'Todos os serviços';
+    if (selectedServices && selectedServices.length === 1) return selectedServices[0];
+    if (selectedServices && selectedServices.length > 1) {
+      const joined = selectedServices.join(', ');
+      return joined.length > 40 ? `${joined.slice(0, 40)}...` : joined;
+    }
+    return 'Serviço';
+  })();
+
+  const statusTriggerLabel = (() => {
+    const allStatuses = ['confirmed', 'scheduled', 'completed', 'canceled'];
+    if (selectedStatuses && selectedStatuses.length === allStatuses.length) return 'Todos os status';
+    if (selectedStatuses && selectedStatuses.length === 1) return statusLabels[selectedStatuses[0] as StatusType] || selectedStatuses[0];
+    if (selectedStatuses && selectedStatuses.length > 1) {
+      const names = selectedStatuses.map(s => statusLabels[s as StatusType] || s);
+      const joined = names.join(', ');
+      return joined.length > 40 ? `${joined.slice(0, 40)}...` : joined;
+    }
+    return 'Status';
+  })();
+
+  const getServiceNames = () => {
+    if (services && services.length > 0) return services.map((s) => String(s.name));
+    return ["Banho e Tosa", "Apenas Banho", "Tosa Higiênica"];
+  };
+
+  const areAllServicesSelected = () => {
+    const names = getServiceNames();
+    return !!(selectedServices && selectedServices.length === names.length);
+  };
+
+  const handleServiceAllToggle = () => {
+    const names = getServiceNames();
+    if (areAllServicesSelected()) {
+      if (names.length > 0) setSelectedServices([names[0]!]);
+      else setSelectedServices([]);
+    } else {
+      setSelectedServices(names);
+    }
+  };
+
+  const allStatuses = ["confirmed", "scheduled", "completed", "canceled"];
+  const areAllStatusesSelected = () => !!(selectedStatuses && selectedStatuses.length === allStatuses.length);
+  const handleStatusAllToggle = () => {
+    if (areAllStatusesSelected()) {
+      if (allStatuses.length > 0) setSelectedStatuses([allStatuses[0]!]);
+      else setSelectedStatuses([]);
+    } else {
+      setSelectedStatuses(allStatuses);
+    }
   };
 
   const addDays = (d: Date, days: number) => {
@@ -174,8 +266,8 @@ export function SchedulePage() {
   };
 
   const todayLabel = () => {
-    if (currentView === 'month') return 'Mês atual';
-    if (currentView === 'week') return 'Semana atual';
+    if (currentView === 'month') return 'Atual';
+    if (currentView === 'week') return 'Atual';
     return 'Hoje';
   };
 
@@ -206,8 +298,15 @@ export function SchedulePage() {
         }
         if (selectedBusinessId) params.business_id = selectedBusinessId;
         if (searchTerm) params.q = searchTerm;
-        if (filterService && filterService !== 'all') params.q = params.q ? `${params.q} ${filterService}` : filterService;
-        if (filterStatus && filterStatus !== 'all') params.q = params.q ? `${params.q} ${filterStatus}` : filterStatus;
+        if (services && selectedServices && selectedServices.length > 0 && selectedServices.length !== services.length) {
+          const sstr = selectedServices.join(' ');
+          params.q = params.q ? `${params.q} ${sstr}` : sstr;
+        }
+        const allStatuses = ["confirmed", "scheduled", "completed", "canceled"];
+        if (selectedStatuses && selectedStatuses.length > 0 && selectedStatuses.length !== allStatuses.length) {
+          const sstr = selectedStatuses.join(' ');
+          params.q = params.q ? `${params.q} ${sstr}` : sstr;
+        }
 
         const data = await getAppointments(params, true);
         if (ignore) return;
@@ -248,7 +347,7 @@ export function SchedulePage() {
     };
     fetchApts();
     return () => { ignore = true; };
-  }, [currentView, selectedDate, searchTerm, filterService, filterStatus, selectedBusinessId]);
+  }, [currentView, selectedDate, searchTerm, selectedServices, selectedStatuses, selectedBusinessId, services]);
 
   const handleNewCreated = async () => {
     try {
@@ -394,90 +493,103 @@ export function SchedulePage() {
             </div>
           </div>
         </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div className="flex flex-row items-center gap-2 overflow-x-auto flex-nowrap">
+                <div className="flex items-center gap-2 whitespace-nowrap">
+                  <Button
+                    variant={currentView === "month" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentView("month")}
+                  >
+                    Mês
+                  </Button>
+                  <Button
+                    variant={currentView === "week" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentView("week")}
+                  >
+                    Semana
+                  </Button>
+                  <Button
+                    variant={currentView === "day" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentView("day")}
+                  >
+                    Dia
+                  </Button>
 
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex items-center gap-2">
-            <Button
-              variant={currentView === "month" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCurrentView("month")}
-            >
-              Mês
-            </Button>
-            <Button
-              variant={currentView === "week" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCurrentView("week")}
-            >
-              Semana
-            </Button>
-            <Button
-              variant={currentView === "day" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCurrentView("day")}
-            >
-              Dia
-            </Button>
-          </div>
+                  <Button variant="outline" size="sm" onClick={handlePrev}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleToday}>
+                    {todayLabel()}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleNext}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handlePrev}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleToday}>
-              {todayLabel()}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleNext}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex-1" />
-
-          <div className="flex flex-col md:flex-row md:items-center gap-2 w-full">
-            <div className="relative w-full md:w-auto">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar pet ou tutor..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 w-full md:w-64"
-              />
+              <div className="flex flex-col lg:flex-row lg:items-center lg:gap-4 w-full lg:w-auto">
+                <div className="relative w-full lg:w-auto">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar pet ou tutor..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 w-full md:w-64"
+                  />
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto">
-              <Select value={filterService} onValueChange={setFilterService}>
-                <SelectTrigger className="w-full md:w-40">
-                  <SelectValue placeholder="Serviço" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
+          <div className="flex flex-col lg:flex-row lg:items-center gap-2 w-full">
+            <div className="w-full md:w-auto">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="border-input data-[placeholder]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-full md:w-40 items-center justify-between gap-2 rounded-md border bg-input-background px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50">
+                    <span className="truncate">{serviceTriggerLabel}</span>
+                    <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuCheckboxItem checked={areAllServicesSelected()} onCheckedChange={() => handleServiceAllToggle()}>
+                    Todos os serviços
+                  </DropdownMenuCheckboxItem>
                   {services.length === 0 ? (
                     <>
-                      <SelectItem value="Banho e Tosa">Banho e Tosa</SelectItem>
-                      <SelectItem value="Apenas Banho">Apenas Banho</SelectItem>
-                      <SelectItem value="Tosa Higiênica">Tosa Higiênica</SelectItem>
+                      <DropdownMenuCheckboxItem checked={selectedServices?.includes("Banho e Tosa")} onCheckedChange={() => toggleService("Banho e Tosa")}>Banho e Tosa</DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem checked={selectedServices?.includes("Apenas Banho")} onCheckedChange={() => toggleService("Apenas Banho")}>Apenas Banho</DropdownMenuCheckboxItem>
+                      <DropdownMenuCheckboxItem checked={selectedServices?.includes("Tosa Higiênica")} onCheckedChange={() => toggleService("Tosa Higiênica")}>Tosa Higiênica</DropdownMenuCheckboxItem>
                     </>
                   ) : (
                     services.map((s) => (
-                      <SelectItem key={String(s.id)} value={String(s.name)}>{s.name}</SelectItem>
+                      <DropdownMenuCheckboxItem key={String(s.id)} checked={selectedServices?.includes(String(s.name))} onCheckedChange={() => toggleService(String(s.name))}>{s.name}</DropdownMenuCheckboxItem>
                     ))
                   )}
-                </SelectContent>
-              </Select>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-full md:w-40">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="confirmed">Confirmado</SelectItem>
-                  <SelectItem value="scheduled">Agendado</SelectItem>
-                  <SelectItem value="completed">Concluído</SelectItem>
-                  <SelectItem value="canceled">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="w-full md:w-auto">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="border-input data-[placeholder]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-full md:w-40 items-center justify-between gap-2 rounded-md border bg-input-background px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50">
+                    <span className="truncate">{statusTriggerLabel}</span>
+                    <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48">
+                  <DropdownMenuCheckboxItem checked={areAllStatusesSelected()} onCheckedChange={() => handleStatusAllToggle()}>Todos os status</DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked={selectedStatuses.includes('confirmed')} onCheckedChange={() => toggleStatus('confirmed')}>Confirmado</DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked={selectedStatuses.includes('scheduled')} onCheckedChange={() => toggleStatus('scheduled')}>Agendado</DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked={selectedStatuses.includes('completed')} onCheckedChange={() => toggleStatus('completed')}>Concluído</DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem checked={selectedStatuses.includes('canceled')} onCheckedChange={() => toggleStatus('canceled')}>Cancelado</DropdownMenuCheckboxItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div className="w-full md:w-auto">
@@ -814,7 +926,6 @@ export function SchedulePage() {
                     <SelectValue placeholder="Selecione um serviço" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Nenhum</SelectItem>
                     {services.map((s) => (
                       <SelectItem key={String(s.id)} value={String(s.name)}>{s.name}</SelectItem>
                     ))}
