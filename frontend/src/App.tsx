@@ -8,6 +8,7 @@ import AdminHome from "./components/adminPage/AdminHome";
 import { ClientsPage } from "./components/adminPage/ClientsPage";
 import { SchedulePage } from "./components/adminPage/SchedulePage";
 import { PetsPage } from "./components/adminPage/PetsPage";
+import ServicesPage from "./components/adminPage/ServicesPage";
 import { FinancialPage } from "./components/adminPage/FinancialPage";
 import { ReportsPage } from "./components/adminPage/ReportsPage";
 import { AnalyticsPage } from "./components/adminPage/AnalyticsPage";
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="pets" element={
           authLoading ? <div>Carregando...</div> : <PetsPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.business_id} currentUserId={auth.id} />
         } />
+        <Route path="services" element={<ServicesPage />} />
         <Route path="financial" element={<FinancialPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />

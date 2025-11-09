@@ -58,8 +58,17 @@ exports.getServices = async (req, res) => {
         } else {
             return res.status(400).json({ message: 'Business handle is required' });
         }
-        const [rows] = await pool.query('SELECT id, name, description, value FROM services WHERE business_id = ?', [businessId]);
-        res.status(200).json(rows);
+        try {
+            const [rows] = await pool.query('SELECT id, name, description, value, active FROM services WHERE business_id = ?', [businessId]);
+            res.status(200).json(rows.map(r => ({ ...r, active: r.active !== undefined ? (r.active ? 1 : 0) : 1 })));
+        } catch (e) {
+            if (e && e.code === 'ER_BAD_FIELD_ERROR') {
+                const [rows] = await pool.query('SELECT id, name, description, value FROM services WHERE business_id = ?', [businessId]);
+                res.status(200).json(rows.map(r => ({ ...r, active: 1 })));
+            } else {
+                throw e;
+            }
+        }
     } catch (error) {
         res.status(500).json({ message: 'Internal Server Error' });
     }
