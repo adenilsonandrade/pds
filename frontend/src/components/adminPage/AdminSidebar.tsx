@@ -12,6 +12,7 @@ const menuItems = [
 	{ title: "Agenda / Calendário", icon: Calendar, page: "schedule" },
 	{ title: "Clientes", icon: Users, page: "clients" },
 	{ title: "Pets", icon: PawPrint, page: "pets" },
+	{ title: "Serviços", icon: FileText, page: "services" },
 ];
 
 const financialItems = [
