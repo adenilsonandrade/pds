@@ -4,6 +4,7 @@ import { getCurrentUser } from './services/auth';
 import { LandingPage } from "./components/landingPage/LandingPage";
 import { LoginPage } from "./components/loginPage/LoginPage";
 import AdminLayout from "./components/adminPage/AdminLayout";
+import BookingPage from "./components/publicPage/BookingPage";
 import AdminHome from "./components/adminPage/AdminHome";
 import { ClientsPage } from "./components/adminPage/ClientsPage";
 import { SchedulePage } from "./components/adminPage/SchedulePage";
@@ -44,6 +45,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LandingPage onNavigateToLogin={() => navigate('/login')} />} />
       <Route path="/login" element={<LoginPage onBackToLanding={() => navigate('/')} onLoginSuccess={() => navigate('/admin')} />} />
+  <Route path="/booking/:handle" element={<BookingPage />} />
 
   <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
         <Route index element={<AdminHome />} />
