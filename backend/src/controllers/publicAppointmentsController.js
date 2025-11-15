@@ -3,7 +3,7 @@ const businessController = require('./businessController.js');
 
 const DEFAULT_BUSINESS_ID = process.env.DEFAULT_BUSINESS_ID || null;
 
-exports.createAgendamento = async (req, res) => {
+exports.createPublicAppointment = async (req, res) => {
     
     const handle = req.params.handle || null;
     let businessId = null;

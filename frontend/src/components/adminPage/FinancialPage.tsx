@@ -8,6 +8,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "../ui/chart";
 import { BarChart, Bar, XAxis, YAxis, LineChart, Line, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { CalendarIcon, TrendingUp, TrendingDown, DollarSign, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { useEffect } from "react";
+import { fetchFinancialOverview } from "../../services/financial";
 
 
 interface FinancialEntry {
@@ -22,63 +24,8 @@ interface FinancialEntry {
   type: "income" | "expense";
 }
 
-const mockEntries: FinancialEntry[] = [
-  {
-    id: "1",
-    date: "2024-12-20",
-    description: "Banho e Tosa - Buddy",
-    service: "Banho e Tosa",
-    client: "João Silva",
-    pet: "Buddy",
-    amount: 65.00,
-    status: "confirmed",
-    type: "income"
-  },
-  {
-    id: "2",
-    date: "2024-12-19",
-    description: "Apenas Banho - Luna",
-    service: "Apenas Banho",
-    client: "Maria Santos",
-    pet: "Luna",
-    amount: 35.00,
-    status: "received",
-    type: "income"
-  },
-  {
-    id: "3",
-    date: "2024-12-18",
-    description: "Tosa Higiênica - Max",
-    service: "Tosa Higiênica",
-    client: "Pedro Costa",
-    pet: "Max",
-    amount: 45.00,
-    status: "pending",
-    type: "income"
-  },
-  {
-    id: "4",
-    date: "2024-12-17",
-    description: "Banho e Tosa Completa - Bella",
-    service: "Banho e Tosa Completa",
-    client: "Ana Oliveira",
-    pet: "Bella",
-    amount: 85.00,
-    status: "received",
-    type: "income"
-  },
-  {
-    id: "5",
-    date: "2024-12-16",
-    description: "Shampoo Premium",
-    service: "Material",
-    client: "-",
-    pet: "-",
-    amount: 45.00,
-    status: "received",
-    type: "expense"
-  }
-];
+// initial placeholder entries while loading
+const mockEntries: FinancialEntry[] = [];
 
 const chartData = [
   { month: "Jul", receita: 2400, projeção: 2600 },
@@ -89,12 +36,7 @@ const chartData = [
   { month: "Dez", receita: 4500, projeção: 5200 }
 ];
 
-const serviceData = [
-  { name: "Banho e Tosa", value: 45, color: "#2563eb" },
-  { name: "Apenas Banho", value: 30, color: "#f97316" },
-  { name: "Tosa Higiênica", value: 20, color: "#10b981" },
-  { name: "Outros", value: 5, color: "#8b5cf6" }
-];
+const defaultServiceColors = ["#2563eb", "#f97316", "#10b981", "#8b5cf6", "#e11d48", "#7c3aed"];
 
 const statusColors = {
   confirmed: "bg-blue-100 text-blue-800",
@@ -114,8 +56,48 @@ export function FinancialPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [filterStatus, setFilterStatus] = useState("all");
+  const [entries, setEntries] = useState<FinancialEntry[]>(mockEntries);
+  const [serviceData, setServiceData] = useState<Array<{ name: string; value: number; color?: string }>>( [] );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredEntries = mockEntries.filter(entry => {
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const range = computeRangeFromPeriod(selectedPeriod, dateRange);
+        const data = await fetchFinancialOverview({ start: range.start, end: range.end });
+        if (!mounted) return;
+        // map recentTransactions to FinancialEntry[]
+        const rec = (data.recentTransactions || []).map((t: any) => ({
+          id: String(t.id || `${t.date}-${Math.random()}`),
+          date: t.date,
+          description: t.description || (t.service ? `${t.service} - ${t.pet || '-'} ` : '-'),
+          service: t.service || '-',
+          client: t.client || '-',
+          pet: t.pet || '-',
+          amount: Number(t.amount || 0),
+          status: (t.status || 'pending'),
+          type: (t.type || 'income')
+        } as FinancialEntry));
+        setEntries(rec);
+        // set service data
+        const svc = (data.revenueByService || []).map((s: any, idx: number) => ({ name: s.name || `Serviço ${idx}`, value: Number(s.value || 0), color: defaultServiceColors[idx % defaultServiceColors.length] }));
+        setServiceData(svc);
+      } catch (err: any) {
+        console.error('Failed to load financial overview', err);
+        setError(err.message || 'Erro ao carregar dados financeiros');
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+  }, [selectedPeriod, dateRange]);
+
+  const filteredEntries = entries.filter(entry => {
     const matchesStatus = filterStatus === "all" || entry.status === filterStatus;
     return matchesStatus;
   });
@@ -315,10 +297,10 @@ export function FinancialPage() {
                     outerRadius={"70%"}
                     fill="#8884d8"
                     dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}%`}
+                    label={({ name, value }) => `${name}: ${value}`}
                   >
                     {serviceData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell key={`cell-${index}`} fill={entry.color || defaultServiceColors[index % defaultServiceColors.length]} />
                     ))}
                   </Pie>
                   <ChartTooltip content={<ChartTooltipContent />} />
@@ -391,6 +373,12 @@ export function FinancialPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {loading && (
+              <div className="p-4 text-sm text-muted-foreground">Carregando...</div>
+            )}
+            {error && (
+              <div className="p-4 text-sm text-red-600">{error}</div>
+            )}
             {filteredEntries.map((entry) => (
               <div
                 key={entry.id}
@@ -432,4 +420,44 @@ export function FinancialPage() {
       </Card>
     </main>
   );
+}
+
+function formatISODate(d: Date) {
+  return d.toISOString().substring(0,10);
+}
+
+function computeRangeFromPeriod(period: string, customRange?: DateRange | undefined) {
+  const now = new Date();
+  if (period === 'day') {
+    return { start: formatISODate(now), end: formatISODate(now) };
+  }
+  if (period === 'week') {
+    const day = now.getDay();
+    const diffToMonday = (day + 6) % 7; // monday as start
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - diffToMonday);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return { start: formatISODate(monday), end: formatISODate(sunday) };
+  }
+  if (period === 'month') {
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const first = new Date(y, m, 1);
+    const last = new Date(y, m + 1, 0);
+    return { start: formatISODate(first), end: formatISODate(last) };
+  }
+  if (period === 'year') {
+    const y = now.getFullYear();
+    const first = new Date(y, 0, 1);
+    const last = new Date(y, 11, 31);
+    return { start: formatISODate(first), end: formatISODate(last) };
+  }
+  if (period === 'custom' && customRange && customRange.from) {
+    const start = formatISODate(customRange.from);
+    const end = customRange.to ? formatISODate(customRange.to) : start;
+    return { start, end };
+  }
+  // fallback: month
+  return computeRangeFromPeriod('month');
 }

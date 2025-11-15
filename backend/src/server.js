@@ -6,7 +6,7 @@ const app = express();
 app.set('trust proxy', true);
 const port = process.env.PORT || 3001;
 const pool = require('./db/database.js');
-const agendamentoRoutes = require('./routes/agendamentoRoutes.js');
+const agendamentoRoutes = require('./routes/publicAppointmentsRoutes.js');
 const appointmentsRoutes = require('./routes/appointmentsRoutes.js');
 const businessRoutes = require('./routes/businessRoutes.js');
 const authRoutes = require('./routes/authRoutes.js');
@@ -15,6 +15,7 @@ const adminBusinessesRoutes = require('./routes/adminBusinessesRoutes.js');
 const customersRoutes = require('./routes/customersRoutes.js');
 const petsRoutes = require('./routes/petsRoutes.js');
 const servicesRoutes = require('./routes/servicesRoutes.js');
+const financialRoutes = require('./routes/financialRoutes.js');
 app.use(cors());
 app.use(express.json());
 app.use('/api', (req, res, next) => {
@@ -62,6 +63,7 @@ app.use('/api/admin/businesses', adminBusinessesRoutes);
 app.use('/api/customers', customersRoutes);
 app.use('/api/pets', petsRoutes);
 app.use('/api/services', servicesRoutes);
+app.use('/api/financial', financialRoutes);
 app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 app.listen(port, () => {});
 app.get(/^\/(?!api).*/, (req, res) => {
