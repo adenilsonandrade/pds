@@ -38,3 +38,37 @@ export async function fetchFinancialOverview(params: { start?: string; end?: str
 }
 
 export default { fetchFinancialOverview };
+
+export async function createFinancial(payload: { amount: number; type: 'revenue' | 'expense'; date?: string; status?: string; description?: string; appointment_id?: number | null; business_id?: number | null }) {
+  const token = getToken();
+  const res = await fetch(`/api/financial`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `Failed to create financial (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function updateFinancial(id: string | number, payload: { amount?: number; type?: string; date?: string; status?: string; description?: string }) {
+  const token = getToken();
+  const res = await fetch(`/api/financial/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message || `Failed to update financial (${res.status})`);
+  }
+  return res.json();
+}

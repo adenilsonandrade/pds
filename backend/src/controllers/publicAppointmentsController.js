@@ -60,10 +60,13 @@ exports.createPublicAppointment = async (req, res) => {
             petId = result.insertId;
         }
         const [serviceRows] = await pool.query(
-            'SELECT id FROM services WHERE name = ? AND business_id = ?',
+            'SELECT id, value FROM services WHERE name = ? AND business_id = ?',
             [servicoNome, businessId]
         );
         const serviceId = serviceRows.length > 0 ? serviceRows[0].id : null;
+        const serviceValue = serviceRows.length > 0 ? serviceRows[0].value : 0;
+        const receivedFlag = req.body && (req.body.received === true || String(req.body.received) === 'true');
+
         const query = `
     INSERT INTO appointments (
         business_id, 
@@ -76,6 +79,7 @@ exports.createPublicAppointment = async (req, res) => {
         status
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `;
+        const appointmentStatus = receivedFlag ? 'received' : 'scheduled';
         const values = [
             businessId,
             customerId,
@@ -84,10 +88,24 @@ exports.createPublicAppointment = async (req, res) => {
             data,
             hora,
             observacoes,
-            'scheduled'
+            appointmentStatus
         ];
-        await pool.query(query, values);
-        res.status(201).json({ message: 'Agendamento criado com sucesso!' });
+                const [result] = await pool.query(query, values);
+                const appointmentId = result && result.insertId ? result.insertId : null;
+
+                const financialStatus = receivedFlag ? 'received' : (appointmentStatus === 'confirmed' ? 'confirmed' : 'pending');
+                try {
+                    if (appointmentId !== null) {
+                        await pool.query(
+                            'INSERT INTO financial (business_id, appointment_id, amount, type, date, status, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+                            [businessId, appointmentId, serviceValue || 0, 'revenue', data, financialStatus]
+                        );
+                    }
+                } catch (e) {
+                    console.error('Failed to insert financial record for public appointment', e);
+                }
+
+                res.status(201).json({ message: 'Agendamento criado com sucesso!' });
     } catch (error) {
         res.status(500).json({ message: 'Erro interno do servidor.' });
     }

@@ -9,7 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 interface Props {
   onClose: () => void;
   onCreated?: () => void;
-  defaultDate?: string; // YYYY-MM-DD
+  defaultDate?: string;
 }
 
 export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: Props) {
@@ -23,6 +23,8 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
   const [date, setDate] = useState(defaultDate || '');
   const [time, setTime] = useState('09:00');
   const [notes, setNotes] = useState('');
+  const [priceOverride, setPriceOverride] = useState<string>('');
+  const [received, setReceived] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +52,11 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
         if (s) payload.service = s.id;
         else payload.service = service;
       }
+      if (priceOverride && priceOverride !== '') {
+        const v = Number(priceOverride);
+        if (!isNaN(v)) payload.price = v;
+      }
+      if (received) payload.received = true;
       await createAppointment(payload);
       if (onCreated) onCreated();
       onClose();
@@ -85,7 +92,6 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
           if (match) setService(String(match.id));
         }
       } catch (e) {
-        // ignore
       }
     })();
     return () => { mounted = false; };
@@ -176,6 +182,16 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
       <div>
         <label className="text-sm">Observações</label>
         <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
+      </div>
+
+      <div>
+        <label className="text-sm">Preço (opcional)</label>
+        <Input type="number" step="0.01" value={priceOverride} onChange={(e) => setPriceOverride(e.target.value)} placeholder="Deixe em branco para usar preço do serviço" />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input id="received" type="checkbox" checked={received} onChange={(e) => setReceived(e.target.checked)} className="w-4 h-4" />
+        <label htmlFor="received" className="text-sm">Recebido</label>
       </div>
 
       <div className="flex gap-2 justify-end">

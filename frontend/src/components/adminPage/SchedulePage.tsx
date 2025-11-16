@@ -28,6 +28,7 @@ interface Appointment {
   status: StatusType;
   value: number;
   duration: number;
+  financial_status?: string | null;
 }
 
 const statusColors: Record<StatusType, string> = {
@@ -332,6 +333,7 @@ export function SchedulePage() {
           service: r.service_name || r.service || (r.service_id ? String(r.service_id) : '—'),
           status: (r.status || 'scheduled') as StatusType,
           value: (r.price !== undefined && r.price !== null) ? Number(r.price) : (r.service_value !== undefined ? Number(r.service_value) : 0),
+          financial_status: r.financial_status || null,
           duration: r.duration || 60,
         }));
         setAppointments(mapped);
@@ -383,6 +385,7 @@ export function SchedulePage() {
         service: r.service_name || r.service || (r.service_id ? String(r.service_id) : '—'),
         status: (r.status || 'scheduled') as StatusType,
         value: (r.price !== undefined && r.price !== null) ? Number(r.price) : (r.service_value !== undefined ? Number(r.service_value) : 0),
+        financial_status: r.financial_status || null,
         duration: r.duration || 60,
       }));
       setAppointments(mapped);
@@ -401,6 +404,9 @@ export function SchedulePage() {
   const [editNotes, setEditNotes] = useState('');
   const [editService, setEditService] = useState<string>('');
   const [editStatus, setEditStatus] = useState<StatusType>('scheduled');
+  const [editPrice, setEditPrice] = useState<string>('');
+  const [originalService, setOriginalService] = useState<string>('');
+  const [editReceived, setEditReceived] = useState<boolean>(false);
 
   const openView = (apt: any) => {
     setViewingAppointment(apt);
@@ -424,6 +430,9 @@ export function SchedulePage() {
     }
     setEditNotes(apt.notes || '');
     setEditService(apt.service || '');
+    setOriginalService(apt.service || '');
+    setEditPrice((apt.value !== undefined && apt.value !== null) ? String(Number(apt.value).toFixed(2)) : '');
+    setEditReceived(String(apt.financial_status || apt.status || '').toLowerCase() === 'received');
     setEditStatus((apt.status || 'scheduled') as StatusType);
   };
 
@@ -443,6 +452,11 @@ export function SchedulePage() {
       if (editService && editService !== 'none') payload.service = editService;
       if (editService === 'none') payload.service = '';
       if (editStatus) payload.status = editStatus;
+      if (editPrice !== undefined && editPrice !== null && String(editPrice).trim() !== '') {
+        const v = Number(editPrice);
+        if (!isNaN(v)) payload.price = v;
+      }
+      payload.received = !!editReceived;
       await updateAppointment(editingAppointment.id, payload);
       closeEdit();
       await handleNewCreated();
@@ -921,7 +935,18 @@ export function SchedulePage() {
               </div>
               <div>
                 <label className="text-sm">Serviço</label>
-                <Select value={editService} onValueChange={(v) => setEditService(v)}>
+                <Select value={editService} onValueChange={(v) => {
+                  setEditService(v);
+                  try {
+                    const svc = services.find(s => String(s.name) === String(v));
+                    if (svc) {
+                      setEditPrice(svc.value !== undefined && svc.value !== null ? String(Number(svc.value).toFixed(2)) : '0.00');
+                    } else if (v === 'none' || v === '' || v === null) {
+                      setEditPrice('');
+                    }
+                  } catch (e) {
+                  }
+                }}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione um serviço" />
                   </SelectTrigger>
@@ -931,6 +956,11 @@ export function SchedulePage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div>
+                <label className="text-sm">Preço (opcional)</label>
+                <Input type="number" step="0.01" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} placeholder="Deixe em branco para manter valor atual" />
               </div>
 
               <div>
@@ -945,6 +975,10 @@ export function SchedulePage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <input id="editReceived" type="checkbox" checked={editReceived} onChange={(e) => { setEditReceived(e.target.checked); }} className="w-4 h-4" />
+                <label htmlFor="editReceived" className="text-sm">Recebido</label>
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => closeEdit()}>Cancelar</Button>

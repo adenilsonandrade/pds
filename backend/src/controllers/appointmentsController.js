@@ -51,11 +51,12 @@ exports.listAppointments = async (req, res) => {
     const businessId = await resolveBusinessId(requester, handle, req.query.business_id);
 
     const sql = `SELECT a.id, a.date, a.time, a.status, c.name AS customer_name, p.name AS pet_name,
-      s.id AS service_id, s.name AS service_name, s.value AS price, s.description AS service_description
+      s.id AS service_id, s.name AS service_name, COALESCE(f.amount, s.value) AS price, s.description AS service_description, f.status AS financial_status
       FROM appointments a
       LEFT JOIN customers c ON a.customer_id = c.id
       LEFT JOIN pets p ON a.pet_id = p.id
       LEFT JOIN services s ON a.service_id = s.id
+      LEFT JOIN financial f ON f.appointment_id = a.id
       WHERE a.business_id = ? AND DATE(a.date) BETWEEN ? AND ?
       ORDER BY a.date, a.time`;
 
@@ -170,9 +171,35 @@ exports.createAppointment = async (req, res) => {
       }
     }
 
+  const priceOverride = req.body && (req.body.price !== undefined ? req.body.price : null);
+  const receivedFlag = req.body && (req.body.received === true || String(req.body.received) === 'true');
+  const providedStatus = req.body && req.body.status ? String(req.body.status) : null;
+  const appointmentStatus = receivedFlag ? 'received' : (providedStatus || 'scheduled');
+
   const insertQuery = `INSERT INTO appointments (business_id, customer_id, pet_id, service_id, date, time, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-  const values = [businessId, customerId, petId, serviceId, date, time, notes || null, 'scheduled'];
-    await pool.query(insertQuery, values);
+  const values = [businessId, customerId, petId, serviceId, date, time, notes || null, appointmentStatus];
+    const [result] = await pool.query(insertQuery, values);
+    const appointmentId = result && result.insertId ? result.insertId : null;
+
+    let finalAmount = 0;
+    if (priceOverride !== null && priceOverride !== undefined && priceOverride !== '') {
+      finalAmount = Number(priceOverride) || 0;
+    } else if (serviceValue !== null && serviceValue !== undefined) {
+      finalAmount = Number(serviceValue) || 0;
+    }
+
+    const financialStatus = receivedFlag ? 'received' : (appointmentStatus === 'confirmed' ? 'confirmed' : 'pending');
+    try {
+      if (appointmentId !== null) {
+        await pool.query(
+          'INSERT INTO financial (business_id, appointment_id, amount, type, date, status, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
+          [businessId, appointmentId, finalAmount, 'revenue', date, financialStatus]
+        );
+      }
+    } catch (e) {
+      console.error('Failed to insert financial record for appointment', e);
+    }
+
   return res.status(201).json({ message: 'Agendamento criado com sucesso!' });
   } catch (error) {
     if (error && error.status) return res.status(error.status).json({ message: error.message });
@@ -208,7 +235,7 @@ exports.updateAppointment = async (req, res) => {
     const requester = await getRequesterInfo(requesterId);
     if (!requester) return res.status(404).json({ message: 'Usuário solicitante não encontrado' });
 
-    const [rows] = await pool.query('SELECT id, business_id FROM appointments WHERE id = ? LIMIT 1', [id]);
+    const [rows] = await pool.query('SELECT id, business_id, service_id, date FROM appointments WHERE id = ? LIMIT 1', [id]);
     if (!rows || rows.length === 0) return res.status(404).json({ message: 'Agendamento não encontrado' });
     const appointment = rows[0];
 
@@ -274,6 +301,52 @@ exports.updateAppointment = async (req, res) => {
     params.push(id);
     const query = `UPDATE appointments SET ${updates.join(', ')} WHERE id = ?`;
     await pool.query(query, params);
+
+    try {
+      const [frows] = await pool.query('SELECT id, amount FROM financial WHERE appointment_id = ? LIMIT 1', [id]);
+      const finExists = frows && frows.length > 0;
+
+      const priceProvided = req.body && (req.body.price !== undefined && req.body.price !== null && req.body.price !== '');
+      const oldServiceId = rows[0] && rows[0].service_id !== undefined ? rows[0].service_id : null;
+      const serviceChanged = (resolvedServiceId !== null && String(resolvedServiceId) !== String(oldServiceId));
+
+      let finalAmount = undefined;
+      if (priceProvided) {
+        finalAmount = Number(req.body.price) || 0;
+      } else if (serviceChanged) {
+        finalAmount = resolvedPrice !== null && resolvedPrice !== undefined ? Number(resolvedPrice) || 0 : 0;
+      }
+
+      const sanitizedDate = (date !== undefined && date !== null) ? (String(date).includes('T') ? String(date).substring(0,10) : String(date).substring(0,10)) : rows[0] && rows[0].date ? (String(rows[0].date).includes('T') ? String(rows[0].date).substring(0,10) : String(rows[0].date).substring(0,10)) : null;
+        const receivedFlag = req.body && (req.body.received === true || String(req.body.received) === 'true');
+        let finalFinancialStatus = undefined;
+        if (receivedFlag) {
+          finalFinancialStatus = 'received';
+        } else if (status !== undefined && status !== null) {
+          const s = String(status).toLowerCase();
+          if (s === 'confirmed') finalFinancialStatus = 'confirmed';
+          else if (s === 'received') finalFinancialStatus = 'received';
+          else if (s === 'canceled' || s === 'cancelled') finalFinancialStatus = 'canceled';
+          else finalFinancialStatus = 'pending';
+        }
+
+        if (finExists) {
+          if (finalAmount !== undefined && finalFinancialStatus !== undefined) {
+            await pool.query('UPDATE financial SET amount = ?, date = ?, status = ? WHERE appointment_id = ? LIMIT 1', [finalAmount, sanitizedDate, finalFinancialStatus, id]);
+          } else if (finalAmount !== undefined) {
+            await pool.query('UPDATE financial SET amount = ?, date = ? WHERE appointment_id = ? LIMIT 1', [finalAmount, sanitizedDate, id]);
+          } else if (finalFinancialStatus !== undefined) {
+            await pool.query('UPDATE financial SET status = ?, date = ? WHERE appointment_id = ? LIMIT 1', [finalFinancialStatus, sanitizedDate, id]);
+          }
+        } else {
+          const insertAmount = finalAmount !== undefined ? finalAmount : (resolvedPrice !== null && resolvedPrice !== undefined ? Number(resolvedPrice) || 0 : 0);
+          const insertStatus = finalFinancialStatus || (appointment && appointment.status ? (String(appointment.status).toLowerCase() === 'confirmed' ? 'confirmed' : 'pending') : 'pending');
+          await pool.query('INSERT INTO financial (business_id, appointment_id, amount, type, date, status, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())', [appointment.business_id, id, insertAmount, 'revenue', sanitizedDate, insertStatus]);
+        }
+    } catch (e) {
+      console.error('Failed to synchronize financial record on appointment update', e);
+    }
+
     return res.json({ message: 'Appointment updated' });
   } catch (error) {
     try {
