@@ -11,6 +11,7 @@ import { SchedulePage } from "./components/adminPage/SchedulePage";
 import { PetsPage } from "./components/adminPage/PetsPage";
 import ServicesPage from "./components/adminPage/ServicesPage";
 import { FinancialPage } from "./components/adminPage/FinancialPage";
+import GoalsPage from "./components/adminPage/GoalsPage";
 import { ReportsPage } from "./components/adminPage/ReportsPage";
 import { AnalyticsPage } from "./components/adminPage/AnalyticsPage";
 import { SettingsPage } from "./components/adminPage/SettingsPage";
@@ -58,6 +59,7 @@ export default function App() {
         } />
         <Route path="services" element={<ServicesPage />} />
         <Route path="financial" element={<FinancialPage />} />
+        <Route path="goals" element={<GoalsPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="settings" element={<SettingsPage />} />

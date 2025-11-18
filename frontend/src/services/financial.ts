@@ -2,6 +2,10 @@ import { getToken } from './auth';
 
 export interface FinancialOverview {
   totalIncome: number;
+  totalrevenue?: number;
+  totalRevenue?: number;
+  total_expenses?: number;
+  totalexpenses?: number;
   totalExpenses: number;
   netRevenue: number;
   ticketAvg: number;

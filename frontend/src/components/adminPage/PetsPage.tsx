@@ -14,7 +14,9 @@ import { getPets, createPet, updatePet, deletePet, Pet } from "../../services/pe
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "../ui/alert-dialog";
 import { getCustomers, Customer } from "../../services/customers";
 
-export function PetsPage({ currentBusinessId }: { currentBusinessId?: string | null }) {
+type Role = 'support' | 'admin' | 'user';
+
+export function PetsPage({ currentRole, currentBusinessId, currentUserId }: { currentRole?: Role; currentBusinessId?: string | null; currentUserId?: number | null }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSpecies, setFilterSpecies] = useState("all");
   const [isAddingPet, setIsAddingPet] = useState(false);

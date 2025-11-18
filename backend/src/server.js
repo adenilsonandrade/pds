@@ -16,6 +16,7 @@ const customersRoutes = require('./routes/customersRoutes.js');
 const petsRoutes = require('./routes/petsRoutes.js');
 const servicesRoutes = require('./routes/servicesRoutes.js');
 const financialRoutes = require('./routes/financialRoutes.js');
+const goalsRoutes = require('./routes/goalsRoutes.js');
 app.use(cors());
 app.use(express.json());
 app.use('/api', (req, res, next) => {
@@ -64,6 +65,7 @@ app.use('/api/customers', customersRoutes);
 app.use('/api/pets', petsRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/financial', financialRoutes);
+app.use('/api/goals', goalsRoutes);
 app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 app.listen(port, () => {});
 app.get(/^\/(?!api).*/, (req, res) => {

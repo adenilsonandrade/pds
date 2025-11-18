@@ -30,7 +30,9 @@ interface FinancialEntry {
 }
 
 const mockEntries: FinancialEntry[] = [];
-const initialChartData: Array<{ label: string; receita: number; projeção: number }> = [];
+
+const initialChartData: Array<{ label: string; previsto: number; efetivado: number }> = [];
+
 const defaultServiceColors = ["#2563eb", "#f97316", "#10b981", "#8b5cf6", "#e11d48", "#7c3aed"];
 
 const statusColors = {
@@ -57,7 +59,7 @@ export function FinancialPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<'all' | 'revenue' | 'expense'>('all');
   const [serviceData, setServiceData] = useState<Array<{ name: string; value: number; color?: string }>>([]);
-  const [chartDataState, setChartDataState] = useState<Array<{ label: string; receita: number; projeção: number }>>(initialChartData);
+  const [chartDataState, setChartDataState] = useState<Array<{ label: string; previsto: number; efetivado: number }>>(initialChartData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -94,30 +96,34 @@ export function FinancialPage() {
         });
         const svc = Object.keys(svcMap).map((name, idx) => ({ name, value: Number(svcMap[name] || 0), color: defaultServiceColors[idx % defaultServiceColors.length] }));
         setServiceData(svc);
-        const nonCanceledAll = (rec || []).filter((r: any) => r.status !== 'canceled');
-        const buckets: Record<string, { date: Date; receita: number }> = {};
-        nonCanceledAll.forEach((r: any) => {
+        const buckets: Record<string, { date: Date; previsto: number; efetivado: number }> = {};
+        (rec || []).forEach((r: any) => {
           const d = new Date(r.date);
           let key = '';
           let label = '';
           if (selectedPeriod === 'year') {
             key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            label = monthNames[d.getMonth()] || '';
+            label = `${String(d.getMonth() + 1).padStart(2, '0')}`;
           } else {
             key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             label = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
           }
-          if (!buckets[key]) buckets[key] = { date: d, receita: 0 };
+          if (!buckets[key]) buckets[key] = { date: d, previsto: 0, efetivado: 0 };
+
           const amt = Number(r.amount || 0) * (r.type === 'expense' ? -1 : 1);
-          buckets[key]!.receita = (buckets[key]!.receita || 0) + amt;
+
+          if (r.status !== 'canceled') {
+            buckets[key]!.previsto = (buckets[key]!.previsto || 0) + amt;
+          }
+
+          const isRealized = (r.type === 'revenue' && r.status === 'received') || (r.type === 'expense' && r.status === 'paid');
+          if (isRealized) {
+            buckets[key]!.efetivado = (buckets[key]!.efetivado || 0) + amt;
+          }
         });
-        const sorted = Object.keys(buckets).map(k => ({ key: k, date: buckets[k]!.date, receita: buckets[k]!.receita })).sort((a, b) => a.date.getTime() - b.date.getTime());
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const chartArr = sorted.map(s => {
-          const lbl = selectedPeriod === 'year' ? (String(s.date.getMonth() + 1).padStart(2, '0')) : `${String(s.date.getDate()).padStart(2, '0')}/${String(s.date.getMonth() + 1).padStart(2, '0')}`;
-          return { label: lbl, receita: Number(s.receita || 0), projeção: Number(s.receita || 0) };
-        });
+
+        const sorted = Object.keys(buckets).map(k => ({ key: k, date: buckets[k]!.date, previsto: buckets[k]!.previsto, efetivado: buckets[k]!.efetivado })).sort((a, b) => a.date.getTime() - b.date.getTime());
+        const chartArr = sorted.map(s => ({ label: selectedPeriod === 'year' ? `${String(s.date.getMonth() + 1).padStart(2, '0')}` : `${String(s.date.getDate()).padStart(2, '0')}/${String(s.date.getMonth() + 1).padStart(2, '0')}`, previsto: Number(s.previsto || 0), efetivado: Number(s.efetivado || 0) }));
         setChartDataState(chartArr);
       } catch (err: any) {
         console.error('Failed to load financial overview', err);
@@ -398,12 +404,12 @@ export function FinancialPage() {
           <CardContent>
             <ChartContainer
               config={{
-                receita: {
-                  label: "Receita",
+                efetivado: {
+                  label: "Efetivado",
                   color: "hsl(var(--primary))",
                 },
-                projeção: {
-                  label: "Projeção",
+                previsto: {
+                  label: "Previsto",
                   color: "hsl(var(--accent))",
                 },
               }}
@@ -411,19 +417,19 @@ export function FinancialPage() {
             >
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartDataState}>
-                  <XAxis dataKey="month" />
+                  <XAxis dataKey="label" />
                   <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Line
                     type="monotone"
-                    dataKey="receita"
+                    dataKey="efetivado"
                     stroke="var(--color-primary)"
                     strokeWidth={2}
                     dot={{ fill: "var(--color-primary)", strokeWidth: 2, r: 4 }}
                   />
                   <Line
                     type="monotone"
-                    dataKey="projeção"
+                    dataKey="previsto"
                     stroke="var(--color-accent)"
                     strokeWidth={2}
                     strokeDasharray="5 5"
