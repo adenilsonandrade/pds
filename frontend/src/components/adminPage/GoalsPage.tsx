@@ -16,6 +16,21 @@ export default function GoalsPage() {
 
   const { selectedBusinessId } = useSelectedBusiness();
 
+  function parseYMD(dateValue: any) {
+    if (!dateValue) return null;
+    if (dateValue instanceof Date) {
+      return { year: dateValue.getUTCFullYear(), month: dateValue.getUTCMonth(), day: dateValue.getUTCDate() };
+    }
+    if (typeof dateValue === 'string') {
+      const m = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return { year: Number(m[1]), month: Number(m[2]) - 1, day: Number(m[3]) };
+      const parsed = new Date(dateValue);
+      if (!isNaN(parsed.getTime())) return { year: parsed.getUTCFullYear(), month: parsed.getUTCMonth(), day: parsed.getUTCDate() };
+      return null;
+    }
+    return null;
+  }
+
   async function load() {
     setLoading(true);
     try {
@@ -30,10 +45,9 @@ export default function GoalsPage() {
   useEffect(() => {
     const map: Record<number, number | undefined> = {};
     (goals || []).forEach((g: any) => {
-      if (!g.period_start) return;
-      const d = new Date(g.period_start);
-      const y = d.getFullYear();
-      const m = d.getMonth();
+      const p = parseYMD(g.period_start);
+      if (!p) return;
+      const { year: y, month: m } = p;
       if (y === year) map[m] = Number(g.amount || 0);
     });
     setFormValues(map);
@@ -59,6 +73,7 @@ export default function GoalsPage() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
+          
         </div>
       </div>
 
@@ -66,8 +81,11 @@ export default function GoalsPage() {
         {loading && <div>Carregando...</div>}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {Array.from({ length: 12 }).map((_, idx) => {
-            const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-            const existing = goals.find((g: any) => g.period_start && new Date(g.period_start).getFullYear() === year && new Date(g.period_start).getMonth() === idx);
+            const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+            const existing = goals.find((g: any) => {
+              const p = parseYMD(g.period_start);
+              return p ? (p.year === year && p.month === idx) : false;
+            });
             const val = formValues[idx] ?? (existing ? Number(existing.amount || 0) : undefined);
             return (
               <Card key={idx}>
@@ -81,14 +99,14 @@ export default function GoalsPage() {
                       <Button onClick={async () => {
                         try {
                           const amount = formValues[idx];
-                          const start = `${year}-${String(idx + 1).padStart(2, '0')}-01`;
-                          const lastDay = new Date(year, idx + 1, 0).getDate();
-                          const end = `${year}-${String(idx + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
-                          const business_id = selectedBusinessId ? Number(selectedBusinessId) : undefined;
+                          const start = `${year}-${String(idx+1).padStart(2,'0')}-01`;
+                          const lastDay = new Date(year, idx+1, 0).getDate();
+                          const end = `${year}-${String(idx+1).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+                          const business_id = selectedBusinessId || undefined;
                           if (existing) {
-                            await updateGoal(existing.id, { business_id, amount: amount ?? 0, period_start: start, period_end: end, description: `Orçamento ${monthNames[idx]} ${year}` });
+                            await updateGoal(existing.id, { business_id: business_id as any, amount: amount ?? 0, period_start: start, period_end: end, description: `Orçamento ${monthNames[idx]} ${year}` });
                           } else {
-                            await createGoal({ business_id, amount: amount ?? 0, period_start: start, period_end: end, description: `Orçamento ${monthNames[idx]} ${year}` });
+                            await createGoal({ business_id: business_id as any, amount: amount ?? 0, period_start: start, period_end: end, description: `Orçamento ${monthNames[idx]} ${year}` });
                           }
                           await load();
                         } catch (err) { console.error(err); }
