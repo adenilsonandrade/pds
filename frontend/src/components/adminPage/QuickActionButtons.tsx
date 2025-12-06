@@ -100,7 +100,7 @@ export function QuickActionButtons() {
                   key={index}
                   variant="outline"
                   className={`h-20 flex-col gap-2 ${action.color} border-0`}
-                  onClick={() => { if (isNew) setShowNewModal(true); if (isNewCustomer) setShowNewCustomerModal(true); if (isView) navigate('/schedule'); if (isFinancial) setShowFinancialModal(true); }}
+                  onClick={() => { if (isNew) setShowNewModal(true); if (isNewCustomer) setShowNewCustomerModal(true); if (isView) navigate('/admin/schedule'); if (isFinancial) setShowFinancialModal(true); }}
                 >
                   <action.icon className="h-5 w-5" />
                   <div className="text-center">
