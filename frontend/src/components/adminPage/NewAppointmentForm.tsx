@@ -24,7 +24,6 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
   const [time, setTime] = useState('09:00');
   const [notes, setNotes] = useState('');
   const [priceOverride, setPriceOverride] = useState<string>('');
-  const [received, setReceived] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +55,6 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
         const v = Number(priceOverride);
         if (!isNaN(v)) payload.price = v;
       }
-      if (received) payload.received = true;
       await createAppointment(payload);
       if (onCreated) onCreated();
       onClose();
@@ -169,14 +167,16 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
         </Select>
       </div>
 
-      <div>
-        <label className="text-sm">Data</label>
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="text-sm">Data</label>
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+        </div>
 
-      <div>
-        <label className="text-sm">Hora</label>
-        <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+        <div>
+          <label className="text-sm">Hora</label>
+          <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} required />
+        </div>
       </div>
 
       <div>
@@ -189,10 +189,7 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
         <Input type="number" step="0.01" value={priceOverride} onChange={(e) => setPriceOverride(e.target.value)} placeholder="Deixe em branco para usar preço do serviço" />
       </div>
 
-      <div className="flex items-center gap-2">
-        <input id="received" type="checkbox" checked={received} onChange={(e) => setReceived(e.target.checked)} className="w-4 h-4" />
-        <label htmlFor="received" className="text-sm">Recebido</label>
-      </div>
+      
 
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>

@@ -11,6 +11,7 @@ import { CalendarIcon, TrendingUp, TrendingDown, DollarSign, Clock, CheckCircle,
 import { useEffect } from "react";
 import { fetchFinancialOverview, createFinancial, updateFinancial } from "../../services/financial";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import FinancialForm from './FinancialForm';
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
@@ -277,62 +278,24 @@ export function FinancialPage() {
               <DialogHeader>
                 <DialogTitle>Cadastrar Movimento</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Tipo</Label>
-                    <Select value={formValues.type || 'revenue'} onValueChange={(v) => setFormValues({ ...formValues, type: v })}>
-                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="revenue">Receita</SelectItem>
-                        <SelectItem value="expense">Despesa</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Valor (R$)</Label>
-                    <Input type="number" step="0.01" value={formValues.amount ?? ''} onChange={(e) => setFormValues({ ...formValues, amount: e.target.value === '' ? undefined : Number(e.target.value) })} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Data</Label>
-                    <Input type="date" value={formValues.date || ''} onChange={(e) => setFormValues({ ...formValues, date: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Status</Label>
-                    <Select value={formValues.status || 'pending'} onValueChange={(v) => setFormValues({ ...formValues, status: v })}>
-                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pendente</SelectItem>
-                        <SelectItem value="confirmed">Confirmado</SelectItem>
-                        <SelectItem value="received">Recebido</SelectItem>
-                        <SelectItem value="paid">Pago</SelectItem>
-                        <SelectItem value="canceled">Cancelado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Descrição</Label>
-                  <Textarea value={formValues.description || ''} onChange={(e) => setFormValues({ ...formValues, description: e.target.value })} rows={3} />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => { setCreateOpen(false); setFormValues({}); }}>Cancelar</Button>
-                  <Button onClick={async () => {
-                    setLoading(true); setError(null);
-                    try {
-                      await createFinancial({ amount: Number(formValues.amount || 0), type: (formValues.type as any) || 'revenue', date: formValues.date, status: formValues.status, description: formValues.description });
-                      setCreateOpen(false);
-                      setFormValues({});
-                      setReloadKey(k => k + 1);
-                    } catch (err: any) {
-                      setError(err.message || 'Erro ao criar movimento');
-                    } finally { setLoading(false); }
-                  }}>{loading ? 'Salvando...' : 'Cadastrar'}</Button>
-                </div>
-                {error && <div className="text-sm text-red-600">{error}</div>}
-              </div>
+                  <FinancialForm
+                    formValues={formValues}
+                    setFormValues={setFormValues}
+                    onCancel={() => { setCreateOpen(false); setFormValues({}); }}
+                    onSave={async () => {
+                      setLoading(true); setError(null);
+                      try {
+                        await createFinancial({ amount: Number(formValues.amount || 0), type: (formValues.type as any) || 'revenue', date: formValues.date, status: formValues.status, description: formValues.description });
+                        setCreateOpen(false);
+                        setFormValues({});
+                        setReloadKey(k => k + 1);
+                      } catch (err: any) {
+                        setError(err.message || 'Erro ao criar movimento');
+                      } finally { setLoading(false); }
+                    }}
+                    loading={loading}
+                    error={error}
+                  />
             </DialogContent>
           </Dialog>
         </div>

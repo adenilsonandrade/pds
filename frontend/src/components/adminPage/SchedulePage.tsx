@@ -11,6 +11,8 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
 import { updateAppointment } from '../../services/appointments';
 import NewAppointmentForm from './NewAppointmentForm';
+import EditAppointmentForm from './UpdateAppointmentForm';
+import ViewAppointmentDetails from './ViewAppointmentDetails';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import ErrorBoundary from '../ErrorBoundary';
 import { getServices, Service as ServiceItem } from '../../services/services';
@@ -328,6 +330,7 @@ export function SchedulePage() {
             return t;
           })(),
           date: r.date,
+          notes: r.notes || r.note || '',
           petName: r.pet_name || r.petName || '—',
           ownerName: r.customer_name || r.ownerName || '—',
           service: r.service_name || r.service || (r.service_id ? String(r.service_id) : '—'),
@@ -380,6 +383,7 @@ export function SchedulePage() {
         id: r.id,
         time: r.time,
         date: r.date,
+        notes: r.notes || r.note || '',
         petName: r.pet_name || r.petName || '—',
         ownerName: r.customer_name || r.ownerName || '—',
         service: r.service_name || r.service || (r.service_id ? String(r.service_id) : '—'),
@@ -898,95 +902,36 @@ export function SchedulePage() {
             </div>
           </DialogContent>
         </Dialog>
-        <Dialog open={!!viewingAppointment} onOpenChange={(open) => { if (!open) setViewingAppointment(null); }}>
-          <DialogContent className="max-h-[90vh] p-4 w-full">
-            <DialogHeader>
-              <DialogTitle>Detalhes do Agendamento</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-2">
-              <div><strong>Pet:</strong> {viewingAppointment?.petName}</div>
-              <div><strong>Tutor:</strong> {viewingAppointment?.ownerName}</div>
-              <div><strong>Serviço:</strong> {viewingAppointment?.service}</div>
-              <div><strong>Data:</strong> {viewingAppointment?.date}</div>
-              <div><strong>Hora:</strong> {viewingAppointment?.time}</div>
-              <div><strong>Observações:</strong> {viewingAppointment?.notes || '—'}</div>
-              <div><strong>Status:</strong> {viewingAppointment?.status}</div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <ViewAppointmentDetails
+          open={!!viewingAppointment}
+          onOpenChange={(open) => { if (!open) setViewingAppointment(null); }}
+          viewingAppointment={viewingAppointment}
+        />
 
-        <Dialog open={!!editingAppointment} onOpenChange={(open) => { if (!open) closeEdit(); }}>
-          <DialogContent className="max-h-[90vh] p-4 w-full">
-            <DialogHeader>
-              <DialogTitle>Editar Agendamento</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm">Data</label>
-                <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-sm">Hora</label>
-                <Input type="time" value={editTime} onChange={(e) => setEditTime(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-sm">Observações</label>
-                <Input value={editNotes} onChange={(e) => setEditNotes(e.target.value)} />
-              </div>
-              <div>
-                <label className="text-sm">Serviço</label>
-                <Select value={editService} onValueChange={(v) => {
-                  setEditService(v);
-                  try {
-                    const svc = services.find(s => String(s.name) === String(v));
-                    if (svc) {
-                      setEditPrice(svc.value !== undefined && svc.value !== null ? String(Number(svc.value).toFixed(2)) : '0.00');
-                    } else if (v === 'none' || v === '' || v === null) {
-                      setEditPrice('');
-                    }
-                  } catch (e) {
-                  }
-                }}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione um serviço" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {services.map((s) => (
-                      <SelectItem key={String(s.id)} value={String(s.name)}>{s.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="text-sm">Preço (opcional)</label>
-                <Input type="number" step="0.01" value={editPrice} onChange={(e) => setEditPrice(e.target.value)} placeholder="Deixe em branco para manter valor atual" />
-              </div>
-
-              <div>
-                <label className="text-sm">Status</label>
-                <Select value={editStatus} onValueChange={(v: any) => setEditStatus(v)}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(statusLabels).map(([k, label]) => (
-                      <SelectItem key={k} value={k}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2">
-                <input id="editReceived" type="checkbox" checked={editReceived} onChange={(e) => { setEditReceived(e.target.checked); }} className="w-4 h-4" />
-                <label htmlFor="editReceived" className="text-sm">Recebido</label>
-              </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => closeEdit()}>Cancelar</Button>
-                <Button onClick={() => handleSaveEdit()}>Salvar</Button>
-              </DialogFooter>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Edit appointment dialog moved to separate component */}
+        <EditAppointmentForm
+          open={!!editingAppointment}
+          onOpenChange={(open) => { if (!open) closeEdit(); }}
+          editingAppointment={editingAppointment}
+          editDate={editDate}
+          setEditDate={setEditDate}
+          editTime={editTime}
+          setEditTime={setEditTime}
+          editNotes={editNotes}
+          setEditNotes={setEditNotes}
+          editService={editService}
+          setEditService={setEditService}
+          editStatus={editStatus}
+          setEditStatus={setEditStatus}
+          editPrice={editPrice}
+          setEditPrice={setEditPrice}
+          editReceived={editReceived}
+          setEditReceived={setEditReceived}
+          services={services}
+          statusLabels={statusLabels}
+          closeEdit={closeEdit}
+          handleSaveEdit={handleSaveEdit}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
           <Card>

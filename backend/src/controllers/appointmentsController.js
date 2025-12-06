@@ -50,7 +50,7 @@ exports.listAppointments = async (req, res) => {
 
     const businessId = await resolveBusinessId(requester, handle, req.query.business_id);
 
-    const sql = `SELECT a.id, a.date, a.time, a.status, c.name AS customer_name, p.name AS pet_name,
+    const sql = `SELECT a.id, a.date, a.time, a.notes, a.status, c.name AS customer_name, p.name AS pet_name,
       s.id AS service_id, s.name AS service_name, COALESCE(f.amount, s.value) AS price, s.description AS service_description, f.status AS financial_status
       FROM appointments a
       LEFT JOIN customers c ON a.customer_id = c.id
