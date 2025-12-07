@@ -20,7 +20,7 @@ export const SelectedBusinessProvider: React.FC<{ children: React.ReactNode }> =
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
+    const load = async () => {
       try {
         const bs = await getBusinesses();
         if (!mounted) return;
@@ -35,8 +35,17 @@ export const SelectedBusinessProvider: React.FC<{ children: React.ReactNode }> =
         }
       } catch (err) {
       }
-    })();
-    return () => { mounted = false; };
+    };
+
+    load();
+
+    const onAuthLogin = () => {
+      load();
+    };
+
+    window.addEventListener('auth:login', onAuthLogin);
+
+    return () => { mounted = false; window.removeEventListener('auth:login', onAuthLogin); };
   }, []);
 
   function setSelectedBusinessId(id: string | null) {

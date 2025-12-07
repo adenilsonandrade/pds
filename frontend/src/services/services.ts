@@ -9,10 +9,14 @@ export interface Service {
 
 const base = '/api/services';
 
-export async function getServices(requireAuth: boolean = false): Promise<Service[]> {
+export async function getServices(requireAuth: boolean = false, params?: { business_id?: string | null; q?: string | null }): Promise<Service[]> {
   const token = getToken();
   if (requireAuth && !token) throw new Error('Autenticação requerida');
-  const res = await fetch(base, {
+  const qs = new URLSearchParams();
+  if (params?.business_id) qs.set('business_id', params.business_id);
+  if (params?.q) qs.set('q', params.q);
+  const url = qs.toString() ? `${base}?${qs.toString()}` : base;
+  const res = await fetch(url, {
     method: 'GET',
     cache: 'no-store',
     headers: {

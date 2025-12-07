@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getServices as apiGetServices, createService as apiCreateService, updateService as apiUpdateService, deleteService as apiDeleteService } from '../../services/services';
+import useBusiness from '../../hooks/useBusiness';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '../ui/dropdown-menu';
@@ -20,14 +21,17 @@ export default function ServicesPage() {
   const [showFormDialog, setShowFormDialog] = useState(false);
   const [editingService, setEditingService] = useState<LocalService | null>(null);
 
+  const { businessId, loading: businessLoading } = useBusiness();
+
   useEffect(() => {
     let ignore = false;
     const fetch = async () => {
       setLoading(true);
       try {
-        const data = await apiGetServices(true);
+        const params = businessId ? { business_id: businessId } : undefined;
+        const data = await apiGetServices(true, params);
         if (ignore) return;
-    const mapped = data.map((s: any) => ({ id: s.id ?? s.name, name: s.name ?? String(s), description: s.description ?? null, active: s.active !== undefined ? !!s.active : true, value: s.value !== undefined && s.value !== null ? Number(s.value) : null }));
+        const mapped = data.map((s: any) => ({ id: s.id ?? s.name, name: s.name ?? String(s), description: s.description ?? null, active: s.active !== undefined ? !!s.active : true, value: s.value !== undefined && s.value !== null ? Number(s.value) : null }));
         setServices(mapped);
       } catch (e: any) {
         setError(e?.message || 'Falha ao carregar serviços');
@@ -35,9 +39,9 @@ export default function ServicesPage() {
         setLoading(false);
       }
     };
-    fetch();
+    if (!businessLoading) fetch();
     return () => { ignore = true; };
-  }, []);
+  }, [businessId, businessLoading]);
 
   const toggleStatus = (status: string) => {
     setSelectedStatuses((prev) => {
@@ -67,10 +71,10 @@ export default function ServicesPage() {
       try {
         setLoading(true);
         if (editingService) {
-          const updated = await apiUpdateService(s.id, { name: s.name, description: s.description ?? null, active: s.active, value: s.value });
+          const updated = await apiUpdateService(s.id, { name: s.name, description: s.description ?? null, active: s.active, value: s.value, ...(businessId ? { business_id: businessId } : {}) });
           setServices(prev => prev.map(p => String(p.id) === String(s.id) ? { id: updated.id ?? s.id, name: updated.name ?? s.name, description: updated.description ?? s.description ?? null, active: updated.active !== undefined ? !!updated.active : !!s.active, value: updated.value !== undefined && updated.value !== null ? Number(updated.value) : (s.value ?? null) } : p));
         } else {
-          const created = await apiCreateService({ name: s.name, description: s.description ?? null, value: s.value ?? null, active: s.active });
+          const created = await apiCreateService({ name: s.name, description: s.description ?? null, value: s.value ?? null, active: s.active, ...(businessId ? { business_id: businessId } : {}) });
           setServices(prev => [ { id: created.id ?? s.id, name: created.name ?? s.name, description: created.description ?? s.description ?? null, active: created.active !== undefined ? !!created.active : !!s.active, value: created.value !== undefined && created.value !== null ? Number(created.value) : (s.value ?? null) }, ...prev ]);
         }
       } catch (e: any) {

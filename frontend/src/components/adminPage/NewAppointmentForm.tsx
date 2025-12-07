@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createAppointment } from '../../services/appointments';
 import { getPets } from '../../services/pets';
 import { getServices } from '../../services/services';
+import useBusiness from '../../hooks/useBusiness';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: Props) {
+  const { businessId, loading: businessLoading } = useBusiness();
   const [pets, setPets] = useState<Array<any>>([]);
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
   const [petName, setPetName] = useState('');
@@ -55,6 +57,7 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
         const v = Number(priceOverride);
         if (!isNaN(v)) payload.price = v;
       }
+      if (businessId) payload.business_id = businessId;
       await createAppointment(payload);
       if (onCreated) onCreated();
       onClose();
@@ -69,20 +72,22 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
     let mounted = true;
     (async () => {
       try {
-        const data = await getPets();
+        if (businessLoading) return;
+        const data = await getPets({ business_id: businessId || undefined });
         if (!mounted) return;
         setPets(data || []);
       } catch (e) {
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [businessId, businessLoading]);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const data = await getServices(true).catch(() => []);
+        if (businessLoading) return;
+        const data = await getServices(true, { business_id: businessId || undefined }).catch(() => []);
         if (!mounted) return;
         setServices(data || []);
         if (data && data.length > 0) {
@@ -93,7 +98,7 @@ export default function NewAppointmentForm({ onClose, onCreated, defaultDate }: 
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [businessId, businessLoading]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 p-4 w-full md:w-96">

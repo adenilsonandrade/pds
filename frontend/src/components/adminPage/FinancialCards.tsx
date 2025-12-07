@@ -41,17 +41,17 @@ export function FinancialCards() {
         const lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
         const monthEnd = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
 
-        const dayRes = await fetchFinancialOverview({ start: today, end: today });
-        const dayResPrev = await fetchFinancialOverview({ start: yesterday, end: yesterday });
+        const dayRes = await fetchFinancialOverview({ start: today, end: today, business_id: selectedBusinessId || undefined });
+        const dayResPrev = await fetchFinancialOverview({ start: yesterday, end: yesterday, business_id: selectedBusinessId || undefined });
 
-        const monthRes = await fetchFinancialOverview({ start: monthStart, end: monthEnd });
+        const monthRes = await fetchFinancialOverview({ start: monthStart, end: monthEnd, business_id: selectedBusinessId || undefined });
         const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const py = prevMonth.getFullYear();
         const pm = String(prevMonth.getMonth() + 1).padStart(2, '0');
         const prevMonthStart = `${py}-${pm}-01`;
         const prevLastDay = new Date(py, prevMonth.getMonth() + 1, 0).getDate();
         const prevMonthEnd = `${py}-${pm}-${String(prevLastDay).padStart(2, '0')}`;
-        const monthResPrev = await fetchFinancialOverview({ start: prevMonthStart, end: prevMonthEnd });
+        const monthResPrev = await fetchFinancialOverview({ start: prevMonthStart, end: prevMonthEnd, business_id: selectedBusinessId || undefined });
 
         const dayRevenue = Number(dayRes.totalrevenue ?? dayRes.totalIncome ?? dayRes.totalRevenue ?? 0) || 0;
         const dayRevenuePrev = Number(dayResPrev.totalrevenue ?? dayResPrev.totalIncome ?? dayResPrev.totalRevenue ?? 0) || 0;

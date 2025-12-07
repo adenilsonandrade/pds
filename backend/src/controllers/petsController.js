@@ -11,17 +11,24 @@ exports.listPets = async (req, res) => {
     if (!requesterId) return res.status(401).json({ message: 'Não autenticado' });
     const requester = await getRequesterInfo(requesterId);
     if (!requester) return res.status(404).json({ message: 'Usuário solicitante não encontrado' });
+    const { business_id: queryBusinessId } = req.query || {};
 
     if (requester.role === 'support') {
-      const [rows] = await pool.query(
-        `SELECT p.id, p.name, p.species, p.breed, p.age, p.weight, p.color, p.gender,
+      let sql = `SELECT p.id, p.name, p.species, p.breed, p.age, p.weight, p.color, p.gender,
                 p.customer_id, c.name AS customer_name, p.notes, p.vaccines, p.special_needs,
                 p.business_id, b.brand_name AS business_name, p.created_at, p.updated_at
          FROM pets p
          LEFT JOIN customers c ON p.customer_id = c.id
-         LEFT JOIN businesses b ON p.business_id = b.id
-         ORDER BY p.created_at DESC`
-      );
+         LEFT JOIN businesses b ON p.business_id = b.id`;
+      const where = [];
+      const params = [];
+      if (queryBusinessId) {
+        where.push('p.business_id = ?');
+        params.push(queryBusinessId);
+      }
+      if (where.length) sql += ` WHERE ` + where.join(' AND ');
+      sql += ` ORDER BY p.created_at DESC`;
+      const [rows] = await pool.query(sql, params);
       return res.status(200).json(rows);
     }
 

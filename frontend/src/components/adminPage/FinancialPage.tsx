@@ -10,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, LineChart, Line, ResponsiveContainer, PieC
 import { CalendarIcon, TrendingUp, TrendingDown, DollarSign, Clock, CheckCircle, AlertCircle, Search } from "lucide-react";
 import { useEffect } from "react";
 import { fetchFinancialOverview, createFinancial, updateFinancial } from "../../services/financial";
+import { useSelectedBusiness } from '../../contexts/SelectedBusinessContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import FinancialForm from './FinancialForm';
 import { Label } from "../ui/label";
@@ -68,6 +69,8 @@ export function FinancialPage() {
   const [formValues, setFormValues] = useState<{ amount?: number; type?: string; date?: string; status?: string; description?: string; id?: any }>({});
   const [reloadKey, setReloadKey] = useState(0);
 
+  const { selectedBusinessId } = useSelectedBusiness();
+
   useEffect(() => {
     let mounted = true;
     async function load() {
@@ -75,7 +78,7 @@ export function FinancialPage() {
       setError(null);
       try {
         const range = computeRangeFromPeriod(selectedPeriod, dateRange);
-        const data = await fetchFinancialOverview({ start: range.start, end: range.end });
+        const data = await fetchFinancialOverview({ start: range.start, end: range.end, business_id: selectedBusinessId || undefined });
         if (!mounted) return;
         const rec = (data.recentTransactions || []).map((t: any) => ({
           id: String(t.id || `${t.date}-${Math.random()}`),
@@ -135,7 +138,7 @@ export function FinancialPage() {
     }
     load();
     return () => { mounted = false; };
-  }, [selectedPeriod, dateRange, reloadKey]);
+  }, [selectedPeriod, dateRange, reloadKey, selectedBusinessId]);
 
   const filteredEntries = entries.filter(entry => {
     const matchesStatus = filterStatus === "all" || entry.status === filterStatus;
@@ -285,7 +288,7 @@ export function FinancialPage() {
                     onSave={async () => {
                       setLoading(true); setError(null);
                       try {
-                        await createFinancial({ amount: Number(formValues.amount || 0), type: (formValues.type as any) || 'revenue', date: formValues.date, status: formValues.status, description: formValues.description });
+                        await createFinancial({ amount: Number(formValues.amount || 0), type: (formValues.type as any) || 'revenue', date: formValues.date, status: formValues.status, description: formValues.description, business_id: selectedBusinessId || undefined });
                         setCreateOpen(false);
                         setFormValues({});
                         setReloadKey(k => k + 1);

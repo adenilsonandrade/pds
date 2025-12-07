@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Button } from "../ui/button";
 import { Plus, UserPlus, Calendar, DollarSign } from "lucide-react";
 import { useState, useEffect } from 'react';
+import useBusiness from '../../hooks/useBusiness';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import NewAppointmentForm from './NewAppointmentForm';
@@ -43,6 +44,7 @@ export function QuickActionButtons() {
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
   const [showFinancialModal, setShowFinancialModal] = useState(false);
   const [businesses, setBusinesses] = useState<Array<{ id: string; brand_name: string }>>([]);
+  const { business, businessId, loading: businessLoading } = useBusiness();
   const [customerFormData, setCustomerFormData] = useState<any>({
     name: '', email: '', phone: '', address: '', city: '', notes: '', business_id: null
   });
@@ -59,6 +61,11 @@ export function QuickActionButtons() {
     let mounted = true;
     (async () => {
       try {
+        if (!businessLoading && business) {
+          if (!mounted) return;
+          setBusinesses([business]);
+          return;
+        }
         const bs = await getBusinesses();
         if (!mounted) return;
         setBusinesses(bs || []);
@@ -67,7 +74,7 @@ export function QuickActionButtons() {
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [business, businessLoading]);
 
   const navigate = useNavigate();
 
@@ -80,6 +87,12 @@ export function QuickActionButtons() {
       alert(err?.message || 'Falha ao criar cliente');
     }
   };
+  
+  useEffect(() => {
+    if (businessId && businesses && businesses.length === 1) {
+      setCustomerFormData((s:any) => ({ ...s, business_id: businessId }));
+    }
+  }, [businessId, businesses]);
   return (
       <Card>
         <CardHeader>
@@ -140,7 +153,6 @@ export function QuickActionButtons() {
                 onSubmit={async (e) => { e.preventDefault(); await handleCustomerCreated(); }}
                 onClose={() => setShowNewCustomerModal(false)}
                 businesses={businesses}
-                currentRole={'admin'}
               />
             </div>
           </DialogContent>
@@ -158,7 +170,7 @@ export function QuickActionButtons() {
                 onSave={async () => {
                   setFinancialLoading(true); setFinancialError(null);
                   try {
-                    await createFinancial({ amount: Number(financialFormValues.amount || 0), type: financialFormValues.type, date: financialFormValues.date, status: financialFormValues.status, description: financialFormValues.description });
+                    await createFinancial({ amount: Number(financialFormValues.amount || 0), type: financialFormValues.type, date: financialFormValues.date, status: financialFormValues.status, description: financialFormValues.description, business_id: businessId || undefined });
                     setShowFinancialModal(false);
                     setFinancialFormValues({ type: 'revenue', amount: undefined, date: '', status: 'pending', description: '' });
                     window.dispatchEvent(new CustomEvent('financial:created'));

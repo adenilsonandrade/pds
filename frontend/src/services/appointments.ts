@@ -15,7 +15,7 @@ export interface Appointment {
 
 const base = '/api/appointments';
 
-export async function getAppointments(params?: { business_id?: string | null; date?: string | null; start_date?: string | null; end_date?: string | null; q?: string | null; handle?: string | null }, requireAuth: boolean = false): Promise<Appointment[]> {
+export async function getAppointments(params?: { business_id?: string | null; date?: string | null; start_date?: string | null; end_date?: string | null; q?: string | null; handle?: string | null; all?: boolean }, requireAuth: boolean = false): Promise<Appointment[]> {
   const token = getToken();
   if (requireAuth && !token) throw new Error('Autenticação requerida');
   let url = base;
@@ -29,6 +29,7 @@ export async function getAppointments(params?: { business_id?: string | null; da
     if (qs.toString()) url += `?${qs.toString()}`;
   } else {
     const qs = new URLSearchParams();
+    if (params?.all) qs.set('all', '1');
     if (params?.business_id) qs.set('business_id', params.business_id);
     if (params?.date) qs.set('date', params.date);
     if (params?.start_date) qs.set('start_date', params.start_date);

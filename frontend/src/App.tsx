@@ -1,5 +1,6 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useEffect, useState } from 'react';
+import { useSelectedBusiness } from './contexts/SelectedBusinessContext';
 import { getCurrentUser } from './services/auth';
 import { LandingPage } from "./components/landingPage/LandingPage";
 import { LoginPage } from "./components/loginPage/LoginPage";
@@ -24,6 +25,7 @@ export default function App() {
   const navigate = useNavigate();
   const [auth, setAuth] = useState<{ id?: number | null; role: string | null; business_id: string | null }>({ id: null, role: null, business_id: null });
   const [authLoading, setAuthLoading] = useState(true);
+  const { selectedBusinessId } = useSelectedBusiness();
 
   useEffect(() => {
     let mounted = true;
@@ -51,11 +53,11 @@ export default function App() {
   <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
         <Route index element={<AdminHome />} />
         <Route path="clients" element={
-          authLoading ? <div>Carregando...</div> : <ClientsPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.business_id} currentUserId={auth.id} />
+          authLoading ? <div>Carregando...</div> : <ClientsPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.role === 'support' ? selectedBusinessId : auth.business_id} currentUserId={auth.id} />
         } />
         <Route path="schedule" element={<SchedulePage />} />
         <Route path="pets" element={
-          authLoading ? <div>Carregando...</div> : <PetsPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.business_id} currentUserId={auth.id} />
+          authLoading ? <div>Carregando...</div> : <PetsPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.role === 'support' ? selectedBusinessId : auth.business_id} currentUserId={auth.id} />
         } />
         <Route path="services" element={<ServicesPage />} />
         <Route path="financial" element={<FinancialPage />} />
@@ -65,7 +67,7 @@ export default function App() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="users" element={
-    authLoading ? <div>Carregando...</div> : <UsersPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.business_id} currentUserId={auth.id} />
+      authLoading ? <div>Carregando...</div> : <UsersPage currentRole={(auth.role as any) || 'user'} currentBusinessId={auth.role === 'support' ? selectedBusinessId : auth.business_id} currentUserId={auth.id} />
         } />
         <Route path="petshops" element={
           authLoading ? <div>Carregando...</div> : <BusinessesPage />

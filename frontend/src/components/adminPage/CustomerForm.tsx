@@ -15,7 +15,7 @@ interface CustomerFormProps {
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
   businesses: Array<{ id: string; brand_name: string }>;
-  currentRole: Role;
+  currentRole?: Role;
 }
 
 const CustomerForm: React.FC<CustomerFormProps> = ({ formData, setFormData, viewOnly, formMode, onSubmit, onClose, businesses, currentRole }) => {
@@ -87,7 +87,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ formData, setFormData, view
             />
           </div>
 
-          {currentRole === 'support' && (
+          {(businesses && businesses.length > 1) && (
             <div className="space-y-2">
               <Label>Petshop</Label>
               <Select value={formData.business_id || ""} onValueChange={(value) => setFormData((s: any) => ({ ...s, business_id: value || null }))}>

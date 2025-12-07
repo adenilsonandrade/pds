@@ -16,12 +16,13 @@ export interface FinancialOverview {
   recentTransactions: Array<any>;
 }
 
-export async function fetchFinancialOverview(params: { start?: string; end?: string; handle?: string } = {}): Promise<FinancialOverview> {
+export async function fetchFinancialOverview(params: { start?: string; end?: string; handle?: string; business_id?: number | string } = {}): Promise<FinancialOverview> {
   const token = getToken();
   const qp: string[] = [];
   if (params.start) qp.push(`start_date=${encodeURIComponent(params.start)}`);
   if (params.end) qp.push(`end_date=${encodeURIComponent(params.end)}`);
   if (params.handle) qp.push(`handle=${encodeURIComponent(params.handle)}`);
+  if (params.business_id != null) qp.push(`business_id=${encodeURIComponent(String(params.business_id))}`);
   const url = `/api/financial${qp.length ? '?' + qp.join('&') : ''}`;
 
   const res = await fetch(url, {

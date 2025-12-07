@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer, Customer } from "../../services/customers";
 import { getPets, Pet } from '../../services/pets';
 import { getBusinesses } from "../../services/businesses";
+import { getAppointments } from '../../services/appointments';
 
 type Role = 'support' | 'admin' | 'user';
 
@@ -61,7 +62,7 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
     async function load() {
       setLoading(true);
       try {
-        const all = await getCustomers();
+        const all = await getCustomers({ business_id: currentBusinessId || undefined });
         setCustomers(all);
 
         if (currentRole === 'support') {
@@ -80,13 +81,13 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
       }
     }
     load();
-  }, [location.pathname, currentRole]);
+  }, [location.pathname, currentRole, currentBusinessId]);
 
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
-        const allPets = await getPets();
+        const allPets = await getPets({ business_id: currentBusinessId || undefined });
         if (!isMounted) return;
         setPets(allPets || []);
         const map: Record<string, Pet[]> = {};
@@ -101,7 +102,7 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
       }
     })();
     return () => { isMounted = false; };
-  }, [location.pathname]);
+  }, [location.pathname, currentBusinessId]);
 
   useEffect(() => {
     const now = Date.now();
@@ -120,9 +121,7 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
     let isMounted = true;
     (async () => {
       try {
-        const res = await fetch('/api/appointments', { method: 'GET', cache: 'no-store' });
-        if (!res.ok) return;
-        const apps = await res.json();
+        const apps = await getAppointments({ business_id: currentBusinessId || undefined, all: true }, true).catch(() => []);
         if (!isMounted || !Array.isArray(apps)) return;
         const visits = apps.length;
         const revenue = apps.reduce((sum: number, a: any) => {
@@ -138,10 +137,11 @@ export const ClientsPage: React.FC<Props> = ({ currentRole, currentBusinessId, c
         setTotalVisits(visits);
         setTotalRevenue(revenue);
       } catch (e) {
+        console.error('Error loading appointments for summary:', e);
       }
     })();
     return () => { isMounted = false; };
-  }, []);
+  }, [currentBusinessId, location.pathname]);
 
   function openCreate() {
     setFormMode('create');

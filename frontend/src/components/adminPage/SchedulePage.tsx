@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
 import { updateAppointment } from '../../services/appointments';
 import NewAppointmentForm from './NewAppointmentForm';
-import EditAppointmentForm from './UpdateAppointmentForm';
+import EditAppointmentForm from './EditAppointmentForm';
 import ViewAppointmentDetails from './ViewAppointmentDetails';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import ErrorBoundary from '../ErrorBoundary';
@@ -64,7 +64,7 @@ export function SchedulePage() {
     let ignore = false;
     const fetchServices = async () => {
       try {
-        const s = await getServices(true);
+        const s = await getServices(true, { business_id: selectedBusinessId || undefined });
         if (ignore) return;
         setServices(s || []);
       } catch (e: any) {

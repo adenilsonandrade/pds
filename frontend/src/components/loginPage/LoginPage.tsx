@@ -45,6 +45,7 @@ export function LoginPage({ onBackToLanding, onLoginSuccess }: LoginPageProps) {
           } catch (err) {
             // ignore storage errors
           }
+          try { window.dispatchEvent(new Event('auth:login')); } catch (e) {}
         }
         onLoginSuccess();
       })

@@ -50,9 +50,13 @@ export interface UpdatePetPayload {
   business_id?: string | null;
 }
 
-export async function getPets(): Promise<Pet[]> {
+export async function getPets(params?: { business_id?: string | null; q?: string | null }): Promise<Pet[]> {
   const token = getToken();
-  const res = await fetch('/api/pets', {
+  const qs = new URLSearchParams();
+  if (params?.business_id) qs.set('business_id', params.business_id);
+  if (params?.q) qs.set('q', params.q);
+  const url = qs.toString() ? `/api/pets?${qs.toString()}` : '/api/pets';
+  const res = await fetch(url, {
     method: 'GET',
     cache: 'no-store',
     headers: {

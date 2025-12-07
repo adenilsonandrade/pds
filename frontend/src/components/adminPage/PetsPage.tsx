@@ -36,7 +36,7 @@ export function PetsPage({ currentRole, currentBusinessId, currentUserId }: { cu
     (async () => {
       try {
         setLoading(true);
-        const list = await getPets();
+        const list = await getPets({ business_id: currentBusinessId || undefined });
         if (isMounted) setPets(list);
       } catch (e: any) {
         if (isMounted) setError(e?.message || "Erro ao carregar pets");
@@ -45,18 +45,18 @@ export function PetsPage({ currentRole, currentBusinessId, currentUserId }: { cu
       }
     })();
     return () => { isMounted = false; };
-  }, []);
+  }, [currentBusinessId]);
 
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
-        const list = await getCustomers();
+        const list = await getCustomers({ business_id: currentBusinessId || undefined });
         if (isMounted) setCustomers(list);
       } catch { }
     })();
     return () => { isMounted = false; };
-  }, []);
+  }, [currentBusinessId]);
 
   const filteredPets = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -90,7 +90,7 @@ export function PetsPage({ currentRole, currentBusinessId, currentUserId }: { cu
       });
       setIsAddingPet(false);
       setNewPet({});
-      const list = await getPets();
+      const list = await getPets({ business_id: currentBusinessId || undefined });
       setPets(list);
     } catch (e: any) {
       setError(e?.message || "Erro ao cadastrar pet");
@@ -106,7 +106,7 @@ export function PetsPage({ currentRole, currentBusinessId, currentUserId }: { cu
     try {
       await deletePet(petToDelete.id);
       setPetToDelete(null);
-      const list = await getPets();
+      const list = await getPets({ business_id: currentBusinessId || undefined });
       setPets(list);
     } catch (e: any) {
       setError(e?.message || "Erro ao excluir pet");
@@ -142,7 +142,7 @@ export function PetsPage({ currentRole, currentBusinessId, currentUserId }: { cu
       setIsEditing(false);
       setEditingPet(null);
       setEditValues({});
-      const list = await getPets();
+      const list = await getPets({ business_id: currentBusinessId || undefined });
       setPets(list);
     } catch (e: any) {
       setError(e?.message || "Erro ao atualizar pet");
@@ -725,4 +725,3 @@ export function PetsPage({ currentRole, currentBusinessId, currentUserId }: { cu
     </main>
   );
 }
-

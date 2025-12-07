@@ -56,7 +56,12 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
 
         try {
           const bs = await getBusinesses();
-          setBusinesses(bs || []);
+          if (currentRole === 'support' && currentBusinessId) {
+            const filtered = (bs || []).filter((b: any) => String(b.id) === String(currentBusinessId));
+            setBusinesses(filtered || []);
+          } else {
+            setBusinesses(bs || []);
+          }
         } catch (e) {
         }
       } catch (err) {
@@ -70,7 +75,7 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
   function openCreate() {
     setFormMode('create');
     setViewOnly(false);
-    setFormData({ email: '', first_name: '', last_name: '', phone: null, password: null, role: 'user', business_id: currentRole === 'admin' ? currentBusinessId || null : null });
+    setFormData({ email: '', first_name: '', last_name: '', phone: null, password: null, role: 'user', business_id: currentBusinessId || null });
     setIsFormOpen(true);
   }
 
@@ -107,17 +112,14 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
   }
 
   function canEditRow(row: UserRow) {
-    if (currentRole === 'support') return true; // support sees/edits all
+    if (currentRole === 'support') return true;
     if (currentRole === 'admin') {
-      // admin can edit only users from same business or null business? limit to same business
       return row.business_id && currentBusinessId && row.business_id === currentBusinessId;
     }
-    // regular user: can edit only own record (normalize types)
     return !!(currentUserId && row.id && String(row.id) === String(currentUserId));
   }
 
   async function handleDelete(id: number | string) {
-    // Prevent deleting own user
     if (String(id) === String(currentUserId)) {
       alert('Você não pode excluir seu próprio usuário');
       return;

@@ -34,7 +34,7 @@ exports.listAppointments = async (req, res) => {
     const requester = await getRequesterInfo(requesterId);
     if (!requester) return res.status(404).json({ message: 'Usuário solicitante não encontrado' });
 
-    const { start_date, end_date, date } = req.query;
+    const { start_date, end_date, date, business_id: queryBusinessId, all } = req.query;
     let qStart = null;
     let qEnd = null;
     if (start_date && end_date) {
@@ -48,19 +48,57 @@ exports.listAppointments = async (req, res) => {
       qStart = today; qEnd = today;
     }
 
-    const businessId = await resolveBusinessId(requester, handle, req.query.business_id);
+    let businessId = null;
+    const wantAll = (String(all || '').toLowerCase() === '1' || String(all || '').toLowerCase() === 'true');
 
-    const sql = `SELECT a.id, a.date, a.time, a.notes, a.status, c.name AS customer_name, p.name AS pet_name,
+    if (requester.role === 'support') {
+      if (handle) {
+        const b = await businessController.getBusinessIdByHandle(handle);
+        if (!b) throw { status: 404, message: 'Business not found for handle' };
+        businessId = b;
+      } else if (queryBusinessId) {
+        businessId = queryBusinessId;
+      } else if (wantAll) {
+        businessId = null;
+      } else if (DEFAULT_BUSINESS_ID) {
+        businessId = DEFAULT_BUSINESS_ID;
+      } else {
+        throw { status: 400, message: 'Business id or handle is required' };
+      }
+    } else if (requester.role === 'admin' || requester.role === 'user') {
+      if (!requester.business_id) throw { status: 400, message: 'Usuário não pertence a um business válido' };
+      businessId = requester.business_id;
+    } else {
+      throw { status: 403, message: 'Permissão negada' };
+    }
+
+    let sql = `SELECT a.id, a.date, a.time, a.notes, a.status, c.name AS customer_name, p.name AS pet_name,
       s.id AS service_id, s.name AS service_name, COALESCE(f.amount, s.value) AS price, s.description AS service_description, f.status AS financial_status
       FROM appointments a
       LEFT JOIN customers c ON a.customer_id = c.id
       LEFT JOIN pets p ON a.pet_id = p.id
       LEFT JOIN services s ON a.service_id = s.id
-      LEFT JOIN financial f ON f.appointment_id = a.id
-      WHERE a.business_id = ? AND DATE(a.date) BETWEEN ? AND ?
-      ORDER BY a.date, a.time`;
+      LEFT JOIN financial f ON f.appointment_id = a.id`;
 
-    const [rows] = await pool.query(sql, [businessId, qStart, qEnd]);
+    const params = [];
+    if (businessId) {
+      if (wantAll) {
+        sql += ` WHERE a.business_id = ?`;
+        params.push(businessId);
+      } else {
+        sql += ` WHERE a.business_id = ? AND DATE(a.date) BETWEEN ? AND ?`;
+        params.push(businessId, qStart, qEnd);
+      }
+    } else {
+      if (wantAll) {
+      } else {
+        sql += ` WHERE DATE(a.date) BETWEEN ? AND ?`;
+        params.push(qStart, qEnd);
+      }
+    }
+    sql += ` ORDER BY a.date, a.time`;
+
+    const [rows] = await pool.query(sql, params);
     return res.json(rows);
   } catch (error) {
     if (error && error.status) return res.status(error.status).json({ message: error.message });

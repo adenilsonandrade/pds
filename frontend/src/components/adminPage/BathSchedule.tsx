@@ -7,8 +7,9 @@ import { CardDescription, CardTitle } from "../ui/card";
 import { Phone, MessageSquare, MoreHorizontal } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { getAppointments, updateAppointment, Appointment as AppointmentType } from "../../services/appointments";
+import useBusiness from '../../hooks/useBusiness';
 import { getServices, Service as ServiceItem } from '../../services/services';
-import EditAppointmentForm from './UpdateAppointmentForm';
+import EditAppointmentForm from './EditAppointmentForm';
 
 type UIAppointment = AppointmentType & {
   client?: string | null;
@@ -78,17 +79,17 @@ export function BathSchedule() {
   const [error, setError] = useState<string | null>(null);
 
   const [services, setServices] = useState<ServiceItem[]>([]);
+  const { business, businessId, loading: businessLoading } = useBusiness();
 
   const loadAppointments = async () => {
     try {
       setLoading(true);
       setError(null);
       const today = new Date();
-      const start = new Date(today);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(today);
-      end.setHours(23, 59, 59, 999);
-      const params = { start_date: start.toISOString(), end_date: end.toISOString() };
+      const startIso = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0)).toISOString();
+      const endIso = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999)).toISOString();
+      const params: any = { start_date: startIso, end_date: endIso };
+      if (businessId) params.business_id = businessId;
       const data = await getAppointments(params, true);
       const mapped: UIAppointment[] = (data || []).map((a: AppointmentType) => {
         const price_number = (a.price == null) ? null : Number(a.price);
@@ -114,11 +115,11 @@ export function BathSchedule() {
 
   useEffect(() => {
     let mounted = true;
-    loadAppointments();
+    if (!businessLoading) loadAppointments();
 
     const fetchServices = async () => {
       try {
-        const s = await getServices(true);
+        const s = await getServices(true, { business_id: businessId || undefined });
         if (!mounted) return;
         setServices(s || []);
       } catch (e) {
@@ -128,7 +129,7 @@ export function BathSchedule() {
     fetchServices();
 
     return () => { mounted = false; };
-  }, []);
+  }, [businessId, businessLoading]);
 
   const [editingAppointment, setEditingAppointment] = useState<any | null>(null);
   const [editDate, setEditDate] = useState('');
