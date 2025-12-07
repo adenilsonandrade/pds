@@ -9,7 +9,7 @@ import React, { useEffect, useState } from "react";
 import { getAppointments, updateAppointment, Appointment as AppointmentType } from "../../services/appointments";
 import useBusiness from '../../hooks/useBusiness';
 import { getServices, Service as ServiceItem } from '../../services/services';
-import EditAppointmentForm from './EditAppointmentForm';
+import EditAppointmentForm from './UpdateAppointmentForm';
 
 type UIAppointment = AppointmentType & {
   client?: string | null;
@@ -123,7 +123,6 @@ export function BathSchedule() {
         if (!mounted) return;
         setServices(s || []);
       } catch (e) {
-        // ignore
       }
     };
     fetchServices();
