@@ -4,13 +4,18 @@ exports.listBusinesses = async (req, res) => {
   try {
     const requesterId = req.user && req.user.sub;
     if (!requesterId) return res.status(401).json({ message: 'Não autenticado' });
-    const [r] = await pool.query('SELECT role FROM users WHERE id = ? LIMIT 1', [requesterId]);
+    const [r] = await pool.query('SELECT role, business_id FROM users WHERE id = ? LIMIT 1', [requesterId]);
     const requester = r && r.length ? r[0] : null;
     if (!requester) return res.status(404).json({ message: 'Usuário solicitante não encontrado' });
-    if (!['support', 'admin'].includes(requester.role)) return res.status(403).json({ message: 'Permissão negada' });
+    if (requester.role === 'support') {
+      const [rows] = await pool.query('SELECT id, brand_name, contact_email, phone, custom_domain, location, maps_url, created_at FROM businesses');
+      return res.status(200).json(rows);
+    }
 
-    const [rows] = await pool.query('SELECT id, brand_name, contact_email, phone, custom_domain, location, maps_url, created_at FROM businesses');
-    return res.status(200).json(rows);
+    const businessId = requester.business_id || null;
+    if (!businessId) return res.status(200).json([]);
+    const [rows] = await pool.query('SELECT id, brand_name, contact_email, phone, custom_domain, location, maps_url, created_at FROM businesses WHERE id = ? LIMIT 1', [businessId]);
+    return res.status(200).json(rows && rows.length ? rows : []);
   } catch (err) {
     return res.status(500).json({ message: 'Erro interno do servidor' });
   }
