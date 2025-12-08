@@ -90,9 +90,9 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ formData, setFormData, view
           {(businesses && businesses.length > 1) && (
             <div className="space-y-2">
               <Label>Petshop</Label>
-              <Select value={formData.business_id || ""} onValueChange={(value) => setFormData((s: any) => ({ ...s, business_id: value || null }))}>
+              <Select value={formData.business_id ?? (currentRole === 'support' ? (businesses[0]?.id ?? "") : "")} onValueChange={(value) => setFormData((s: any) => ({ ...s, business_id: value || null }))}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="— Selecionar petshop —" />
+                  <SelectValue placeholder={currentRole === 'support' ? undefined : "— Selecionar petshop —"} />
                 </SelectTrigger>
                 <SelectContent>
                   {businesses.map(b => (

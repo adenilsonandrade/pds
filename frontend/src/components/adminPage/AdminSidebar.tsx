@@ -44,12 +44,23 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
 						const user = await mod.getCurrentUser();
 						if (mounted) setCurrentUser({ first_name: user.first_name || null, last_name: user.last_name || null, phone: user.phone || null, business_name: user.business_name || null, role: user.role || null });
 					} catch (e) {
-						// ignore
 					}
 				})();
 
 			return () => { mounted = false; };
 		}, []);
+
+		useEffect(() => {
+			if (currentUser && currentUser.role === 'support' && businesses && businesses.length > 0 && !selectedBusinessId) {
+				const first = businesses[0];
+				if (first) {
+					setSelectedBusinessId(first.id);
+					setCurrentUser((cu) => cu ? { ...cu, business_name: first.brand_name } : cu);
+				}
+			}
+		}, [currentUser, businesses, selectedBusinessId, setSelectedBusinessId]);
+
+		const _supportSelectValue = selectedBusinessId ?? (businesses && businesses.length > 0 && businesses[0] ? businesses[0].id : '');
 
 	return (
 		<Sidebar>
@@ -160,25 +171,31 @@ export function AdminSidebar({ onLogout }: AdminSidebarProps) {
 						</Avatar>
 						<div className="flex-1 min-w-0">
 							<div className="text-sm font-medium truncate">{currentUser ? ((currentUser.first_name || '') + (currentUser.last_name ? ' ' + currentUser.last_name : '')).trim() || 'Usuário' : 'Usuário'}</div>
-							<div className="text-xs text-muted-foreground">{currentUser && currentUser.business_name ? currentUser.business_name : '—'}</div>
-							{currentUser && currentUser.role === 'support' && (
+							{currentUser && currentUser.role === 'support' ? (
 								<div className="mt-2">
 									<select
-										value={selectedBusinessId || ''}
+										value={_supportSelectValue}
 										onChange={(e) => {
-										const v = e.target.value || null;
-										setSelectedBusinessId(v);
-										const found = businesses.find(b => b.id === v);
-										setCurrentUser((cu) => cu ? { ...cu, business_name: found ? found.brand_name : cu.business_name } : cu);
-									}}
-									className="p-1 text-sm border rounded w-full"
+											const v = e.target.value || null;
+											const first = businesses && businesses.length > 0 ? businesses[0] : undefined;
+											if (!v && first) {
+												setSelectedBusinessId(first.id);
+												setCurrentUser((cu) => cu ? { ...cu, business_name: first.brand_name } : cu);
+												return;
+											}
+											setSelectedBusinessId(v);
+											const found = businesses?.find(b => b.id === v);
+											setCurrentUser((cu) => cu ? { ...cu, business_name: found ? found.brand_name : cu.business_name } : cu);
+										}}
+										className="p-1 text-sm border rounded w-full"
 									>
-										<option value="">— Selecionar petshop —</option>
 										{businesses.map(b => (
 											<option key={b.id} value={b.id}>{b.brand_name}</option>
 										))}
 									</select>
 								</div>
+							) : (
+								<div className="text-xs text-muted-foreground">{businesses?.find(b => b.id === selectedBusinessId)?.brand_name ?? currentUser?.business_name ?? ''}</div>
 							)}
 						</div>
 					</div>

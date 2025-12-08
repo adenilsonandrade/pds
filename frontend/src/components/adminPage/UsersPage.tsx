@@ -210,8 +210,15 @@ export const UsersPage: React.FC<Props> = ({ currentRole, currentBusinessId, cur
                   {currentRole === 'support' ? (
                     <div>
                       <Label>Petshop</Label>
-                      <select value={formData.business_id || ''} onChange={(e) => setFormData((s) => ({ ...s, business_id: e.target.value || null }))} className="p-2 border rounded w-full" disabled={viewOnly}>
-                        <option value="">— Selecionar petshop —</option>
+                      <select value={formData.business_id ?? (businesses[0]?.id ?? '')} onChange={(e) => {
+                        const v = e.target.value || null;
+                        const first = businesses[0];
+                        if (!v && first) {
+                          setFormData((s) => ({ ...s, business_id: first.id }));
+                          return;
+                        }
+                        setFormData((s) => ({ ...s, business_id: v }));
+                      }} className="p-2 border rounded w-full" disabled={viewOnly}>
                         {businesses.map(b => (
                           <option key={b.id} value={b.id}>{b.brand_name}</option>
                         ))}

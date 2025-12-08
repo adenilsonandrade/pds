@@ -87,7 +87,7 @@ export function SettingsPage() {
           const newBs = (businesses || []).map(b => b.id === updated.id ? { ...b, ...(updated as any) } : b);
           setBusinesses(newBs);
         } catch (e) {}
-        alert('Informações da clínica atualizadas');
+        alert('Informações da propriedade atualizadas');
       } catch (err: any) {
         alert(err.message || 'Falha ao salvar alterações');
       }
@@ -99,7 +99,7 @@ export function SettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Configurações</h1>
-          <p className="text-muted-foreground">Ajustes gerais do sistema e preferências da clínica</p>
+          <p className="text-muted-foreground">Ajustes gerais do sistema e preferências da propriedade</p>
         </div>
         <div>
           <Button onClick={save}>Salvar</Button>
@@ -109,7 +109,7 @@ export function SettingsPage() {
       <div className="grid grid-cols-1 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Informações da Clínica</CardTitle>
+            <CardTitle>Informações da Propriedade</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -157,7 +157,7 @@ export function SettingsPage() {
               </div>
 
               <div>
-                <Label>Página da Pet</Label>
+                <Label>Página da Propriedade</Label>
                 {customDomain ? (
                   <div className="mt-1">
                     {(() => {
