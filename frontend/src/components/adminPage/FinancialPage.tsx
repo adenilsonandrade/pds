@@ -288,7 +288,7 @@ export function FinancialPage() {
                     onSave={async () => {
                       setLoading(true); setError(null);
                       try {
-                        await createFinancial({ amount: Number(formValues.amount || 0), type: (formValues.type as any) || 'revenue', date: formValues.date, status: formValues.status, description: formValues.description, business_id: selectedBusinessId || undefined });
+                        await createFinancial({ amount: Number(formValues.amount || 0), type: (formValues.type as any) || 'revenue', date: formValues.date, status: formValues.status, description: formValues.description, business_id: selectedBusinessId ? Number(selectedBusinessId) : undefined });
                         setCreateOpen(false);
                         setFormValues({});
                         setReloadKey(k => k + 1);

@@ -12,7 +12,7 @@ export default function GoalsPage() {
   const [goals, setGoals] = useState<Array<any>>([]);
   const [loading, setLoading] = useState(false);
   const [year, setYear] = useState<number>(new Date().getFullYear());
-  const [formValues, setFormValues] = useState<Record<number, number | undefined>>({});
+  const [formValues, setFormValues] = useState<Record<number, string | undefined>>({});
 
   const { selectedBusinessId } = useSelectedBusiness();
 
@@ -43,12 +43,12 @@ export default function GoalsPage() {
 
   useEffect(() => { load(); }, [selectedBusinessId]);
   useEffect(() => {
-    const map: Record<number, number | undefined> = {};
+    const map: Record<number, string | undefined> = {};
     (goals || []).forEach((g: any) => {
       const p = parseYMD(g.period_start);
       if (!p) return;
       const { year: y, month: m } = p;
-      if (y === year) map[m] = Number(g.amount || 0);
+      if (y === year) map[m] = g.amount !== undefined && g.amount !== null ? String(g.amount) : undefined;
     });
     setFormValues(map);
   }, [goals, year]);
@@ -73,51 +73,82 @@ export default function GoalsPage() {
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-          
+        </div>
+        <div className="flex items-center gap-2">
+          <Button onClick={async () => {
+            setLoading(true);
+            try {
+              const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+              for (let idx = 0; idx < 12; idx++) {
+                const hasOverride = Object.prototype.hasOwnProperty.call(formValues, idx);
+                if (!hasOverride) continue;
+                const raw = formValues[idx];
+                const start = `${year}-${String(idx+1).padStart(2,'0')}-01`;
+                const lastDay = new Date(year, idx+1, 0).getDate();
+                const end = `${year}-${String(idx+1).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+                const existing = goals.find((g: any) => {
+                  const p = parseYMD(g.period_start);
+                  return p ? (p.year === year && p.month === idx) : false;
+                });
+                const business_id = selectedBusinessId || undefined;
+
+                if (raw === '' || raw === null) {
+                  if (existing) {
+                    try {
+                      await deleteGoal(existing.id);
+                    } catch (err) {
+                      console.warn('Failed deleting goal for month', idx, err);
+                    }
+                  }
+                } else {
+                  const normalized = typeof raw === 'string' ? raw.replace(',', '.') : String(raw);
+                  const parsed = Number(normalized);
+                  if (Number.isNaN(parsed)) {
+                    console.warn('Invalid goal value for month', idx, raw);
+                    continue;
+                  }
+                  if (existing) {
+                    await updateGoal(existing.id, { business_id: business_id as any, amount: parsed, period_start: start, period_end: end, description: `Orçamento ${monthNames[idx]} ${year}` });
+                  } else {
+                    await createGoal({ business_id: business_id as any, amount: parsed, period_start: start, period_end: end, description: `Orçamento ${monthNames[idx]} ${year}` });
+                  }
+                }
+              }
+              await load();
+            } catch (err) {
+              console.error('Failed saving goals', err);
+            } finally { setLoading(false); }
+          }} disabled={loading}>{loading ? 'Salvando...' : 'Salvar alterações'}</Button>
         </div>
       </div>
 
       <div>
         {loading && <div>Carregando...</div>}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {Array.from({ length: 12 }).map((_, idx) => {
-            const monthNames = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-            const existing = goals.find((g: any) => {
-              const p = parseYMD(g.period_start);
-              return p ? (p.year === year && p.month === idx) : false;
-            });
-            const val = formValues[idx] ?? (existing ? Number(existing.amount || 0) : undefined);
-            return (
-              <Card key={idx}>
-                <CardHeader>
-                  <CardTitle>{monthNames[idx]} {year}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4">
-                    <Input type="number" step="0.01" value={val ?? ''} onChange={(e: any) => setFormValues({ ...formValues, [idx]: e.target.value === '' ? undefined : Number(e.target.value) })} className="w-48 no-spinner" />
-                    <div className="flex gap-2 ml-auto">
-                      <Button onClick={async () => {
-                        try {
-                          const amount = formValues[idx];
-                          const start = `${year}-${String(idx+1).padStart(2,'0')}-01`;
-                          const lastDay = new Date(year, idx+1, 0).getDate();
-                          const end = `${year}-${String(idx+1).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
-                          const business_id = selectedBusinessId || undefined;
-                          if (existing) {
-                            await updateGoal(existing.id, { business_id: business_id as any, amount: amount ?? 0, period_start: start, period_end: end, description: `Orçamento ${monthNames[idx]} ${year}` });
-                          } else {
-                            await createGoal({ business_id: business_id as any, amount: amount ?? 0, period_start: start, period_end: end, description: `Orçamento ${monthNames[idx]} ${year}` });
-                          }
-                          await load();
-                        } catch (err) { console.error(err); }
-                      }}>Salvar</Button>
-                      {existing && (<Button variant="outline" onClick={async () => { try { await deleteGoal(existing.id); await load(); } catch (err) { console.error(err); } }}>Excluir</Button>)}
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Metas por Mês — {year}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {Array.from({ length: 12 }).map((_, idx) => {
+                  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                  const existing = goals.find((g: any) => {
+                    const p = parseYMD(g.period_start);
+                    return p ? (p.year === year && p.month === idx) : false;
+                  });
+                  const hasOverride = Object.prototype.hasOwnProperty.call(formValues, idx);
+                  const display = hasOverride ? (formValues[idx] ?? '') : (existing ? String(existing.amount ?? '') : '');
+                  return (
+                    <div key={idx} className="flex items-center gap-4 border-b pb-2">
+                      <div className="w-40 text-sm">{monthNames[idx]}</div>
+                      <Input type="text" inputMode="decimal" step="0.01" value={display} onChange={(e: any) => setFormValues({ ...formValues, [idx]: e.target.value })} className="w-48" />
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </main>

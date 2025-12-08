@@ -70,7 +70,6 @@ export function QuickActionButtons() {
         if (!mounted) return;
         setBusinesses(bs || []);
       } catch (e) {
-        // ignore
       }
     })();
     return () => { mounted = false; };
@@ -170,7 +169,7 @@ export function QuickActionButtons() {
                 onSave={async () => {
                   setFinancialLoading(true); setFinancialError(null);
                   try {
-                    await createFinancial({ amount: Number(financialFormValues.amount || 0), type: financialFormValues.type, date: financialFormValues.date, status: financialFormValues.status, description: financialFormValues.description, business_id: businessId || undefined });
+                    await createFinancial({ amount: Number(financialFormValues.amount || 0), type: financialFormValues.type, date: financialFormValues.date, status: financialFormValues.status, description: financialFormValues.description, business_id: businessId ? Number(businessId) : undefined });
                     setShowFinancialModal(false);
                     setFinancialFormValues({ type: 'revenue', amount: undefined, date: '', status: 'pending', description: '' });
                     window.dispatchEvent(new CustomEvent('financial:created'));

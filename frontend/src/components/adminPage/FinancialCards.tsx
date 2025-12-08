@@ -70,10 +70,11 @@ export function FinancialCards() {
 
         const goalsRes = await fetchGoals({ business_id: selectedBusinessId || undefined });
         const goals = goalsRes.goals || [];
+        const monthKey = `${y}-${m}`;
         const currentGoal = goals.find((g: any) => {
           if (!g.period_start) return false;
-          const d = new Date(g.period_start);
-          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+          const periodKey = String(g.period_start).substring(0, 7);
+          return periodKey === monthKey;
         });
         const goalAmount = currentGoal ? Number(currentGoal.amount || 0) : 0;
         setMonthlyGoal(goalAmount || null);
